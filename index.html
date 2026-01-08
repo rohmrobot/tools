@@ -1,1982 +1,1050 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="th" class="light">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ระบบยืมเครื่องมือ | Equipment Borrowing System</title>
-    <link
-      rel="icon"
-      type="image/x-icon"
-      href="https://static.vecteezy.com/system/resources/previews/009/400/627/non_2x/tool-clipart-design-illustration-free-png.png"
-    />
-
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบยืม-คืนเครื่องมือ | Equipment Borrowing System</title>
+    
     <!-- Google Fonts: Kanit -->
-    <link
-      href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap"
-      rel="stylesheet"
-    />
-
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-
+    
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <!-- Tailwind Config -->
     <script>
-      tailwind.config = {
-        darkMode: "class",
-        theme: {
-          extend: {
-            fontFamily: {
-              sans: ["Kanit", "sans-serif"],
-            },
-            colors: {
-              primary: {
-                50: "#f0f9ff",
-                100: "#e0f2fe",
-                500: "#0ea5e9",
-                600: "#0284c7",
-                700: "#0369a1",
-              },
-              dark: {
-                bg: "#0f172a",
-                card: "#1e293b",
-                text: "#f1f5f9",
-              },
-            },
-          },
-        },
-      };
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Kanit', 'sans-serif'] },
+                    colors: {
+                        primary: { 50: '#f0f9ff', 100: '#e0f2fe', 500: '#0ea5e9', 600: '#0284c7', 700: '#0369a1' },
+                        dark: { bg: '#0f172a', card: '#1e293b', text: '#f1f5f9' }
+                    }
+                }
+            }
+        }
     </script>
-
-    <!-- Font Awesome -->
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-    />
 
     <style>
-      ::-webkit-scrollbar {
-        width: 6px;
-      }
-      ::-webkit-scrollbar-track {
-        background: transparent;
-      }
-      ::-webkit-scrollbar-thumb {
-        background: #cbd5e1;
-        border-radius: 4px;
-      }
-      .dark ::-webkit-scrollbar-thumb {
-        background: #475569;
-      }
-
-      .glass {
-        background: rgba(255, 255, 255, 0.9);
-        backdrop-filter: blur(10px);
-      }
-      .dark .glass {
-        background: rgba(30, 41, 59, 0.9);
-      }
-
-      .fade-in {
-        animation: fadeIn 0.3s ease-in-out;
-      }
-      @keyframes fadeIn {
-        from {
-          opacity: 0;
-          transform: translateY(10px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-
-      .swal2-popup {
-        font-family: "Kanit", sans-serif !important;
-      }
-
-      /* Centered Toast Customization */
-      .swal2-container.swal2-top-end {
-        top: 50% !important;
-        left: 50% !important;
-        transform: translate(-50%, -50%) !important;
-        right: auto !important;
-        bottom: auto !important;
-      }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .dark ::-webkit-scrollbar-thumb { background: #475569; }
+        .glass { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); }
+        .dark .glass { background: rgba(30, 41, 59, 0.9); }
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .swal2-popup { font-family: 'Kanit', sans-serif !important; }
+        .swal2-container.swal2-top-end { top: 50% !important; left: 50% !important; transform: translate(-50%, -50%) !important; right: auto !important; bottom: auto !important; }
     </style>
-  </head>
-  <body
-    class="bg-gray-100 text-gray-800 dark:bg-dark-bg dark:text-dark-text transition-colors duration-300 min-h-screen font-sans flex flex-col"
-  >
+</head>
+<body class="bg-gray-100 text-gray-800 dark:bg-dark-bg dark:text-dark-text transition-colors duration-300 min-h-screen flex flex-col">
+
     <!-- ================= CONFIGURATION ================= -->
     <script>
-      const APP_CONFIG = {
-        useGoogleSheets: true,
-        // ใส่ URL ของ Google Apps Script ของคุณที่นี่
-        googleScriptUrl:
-          "https://script.google.com/macros/s/AKfycbw8ssHPXkmML0yMsKXP2Qr03K-zk-TlQiD-hPNVQmRqAUhOpnZMJhrYGGOARNsb2YM/exec",
-        storageKeys: {
-          user: "ems_user_v2",
-          theme: "ems_theme",
-          localData: "ems_data_inventory",
-          localLogs: "ems_data_logs",
-          localAdmins: "ems_data_admins",
-          localCats: "ems_data_cats",
-        },
-      };
-
-      // Fallback Data
-      const initialInventory = [
-        {
-          id: 1,
-          name: "สว่านไร้สาย (ตัวอย่าง)",
-          image: "https://placehold.co/300x200/png?text=Drill",
-          stock: 5,
-          category: "เครื่องมือไฟฟ้า",
-        },
-      ];
+        // FIX: ใช้ window.APP_CONFIG เพื่อให้มองเห็นได้ทั่วทั้งไฟล์รวมถึงใน module script
+        window.APP_CONFIG = {
+            useGoogleSheets: false, // ใช้ Firebase แล้ว
+            adminId: "9999", 
+            storageKeys: {
+                user: "ems_user_fb",
+                theme: "ems_theme",
+                localData: "ems_data_inventory",
+                localLogs: "ems_data_logs"
+            }
+        };
     </script>
 
-    <!-- ================= LOADING OVERLAY ================= -->
-    <div
-      id="loading-overlay"
-      class="fixed inset-0 z-[70] flex items-center justify-center bg-black/50 backdrop-blur-sm hidden"
-    >
-      <div
-        class="bg-white dark:bg-dark-card p-5 rounded-xl shadow-2xl flex flex-col items-center gap-3"
-      >
-        <i class="fas fa-circle-notch fa-spin text-primary-600 text-3xl"></i>
-        <span class="font-medium text-gray-700 dark:text-gray-200"
-          >กำลังเชื่อมต่อข้อมูล...</span
-        >
-      </div>
-    </div>
-
-    <!-- Background Sync Indicator -->
-    <div
-      id="saving-indicator"
-      class="fixed bottom-4 right-4 z-[60] bg-white dark:bg-dark-card shadow-lg rounded-full px-4 py-2 text-xs font-medium text-gray-500 hidden flex items-center gap-2 border border-gray-100 dark:border-gray-700"
-    >
-      <i class="fas fa-circle-notch fa-spin text-primary-500"></i>
-      <span id="saving-text">บันทึกข้อมูล...</span>
+    <!-- ================= LOADING & STATUS ================= -->
+    <div id="loading-overlay" class="fixed inset-0 z-[70] flex items-center justify-center bg-black/50 backdrop-blur-sm hidden">
+        <div class="bg-white dark:bg-dark-card p-5 rounded-xl shadow-2xl flex flex-col items-center gap-3">
+            <i class="fas fa-circle-notch fa-spin text-primary-600 text-3xl"></i>
+            <span class="font-medium text-gray-700 dark:text-gray-200">กำลังโหลดข้อมูล...</span>
+        </div>
     </div>
 
     <!-- ================= LOGIN SCREEN ================= -->
-    <div
-      id="login-screen"
-      class="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-primary-600 to-blue-800 p-4 hidden"
-    >
-      <div
-        class="bg-white dark:bg-dark-card p-8 rounded-2xl shadow-2xl w-full max-w-md transform transition-all fade-in"
-      >
-        <div class="text-center mb-8">
-          <div
-            class="bg-primary-100 dark:bg-primary-900 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 text-primary-600 dark:text-primary-300 shadow-inner"
-          >
-            <i class="fas fa-toolbox text-3xl"></i>
-          </div>
-          <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
-            ระบบเบิก-คืนเครื่องมือ
-          </h1>
-          <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">
-            Equipment Management System
-          </p>
+    <div id="login-screen" class="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-primary-600 to-blue-800 p-4 hidden">
+        <div class="bg-white dark:bg-dark-card p-8 rounded-2xl shadow-2xl w-full max-w-md transform transition-all fade-in">
+            <div class="text-center mb-8">
+                <div class="bg-primary-100 dark:bg-primary-900 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 text-primary-600 dark:text-primary-300 shadow-inner">
+                    <i class="fas fa-toolbox text-3xl"></i>
+                </div>
+                <h1 class="text-2xl font-bold text-gray-900 dark:text-white">ระบบเบิก-คืนเครื่องมือ</h1>
+                <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">Equipment Management System (Firebase)</p>
+            </div>
+            <form id="login-form" class="space-y-5">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">รหัสพนักงาน</label>
+                    <div class="relative">
+                        <i class="fas fa-id-card absolute left-3 top-3.5 text-gray-400"></i>
+                        <input type="text" id="login-id" required class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-500 outline-none transition" placeholder="กรอกรหัสพนักงาน (เช่น 9999)">
+                    </div>
+                </div>
+                <!-- เพิ่มช่องชื่อ-นามสกุล กลับมา -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">ชื่อ-นามสกุล</label>
+                    <div class="relative">
+                        <i class="fas fa-user absolute left-3 top-3.5 text-gray-400"></i>
+                        <input type="text" id="login-name" required class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-500 outline-none transition" placeholder="ระบุชื่อของคุณ">
+                    </div>
+                </div>
+                
+                <button type="submit" class="w-full bg-primary-600 hover:bg-primary-700 text-white font-bold py-3.5 rounded-lg shadow-lg transition transform hover:scale-[1.02] flex items-center justify-center gap-2">
+                    <span>เข้าสู่ระบบ</span>
+                    <i class="fas fa-arrow-right"></i>
+                </button>
+            </form>
         </div>
-
-        <form id="login-form" class="space-y-5">
-          <div>
-            <label
-              class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-              >รหัสพนักงาน</label
-            >
-            <div class="relative">
-              <i
-                class="fas fa-id-card absolute left-3 top-3.5 text-gray-400"
-              ></i>
-              <input
-                type="text"
-                id="login-id"
-                required
-                class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-500 outline-none transition"
-                placeholder="กรอกรหัสพนักงาน"
-              />
-            </div>
-          </div>
-          <div>
-            <label
-              class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-              >ชื่อ-นามสกุล</label
-            >
-            <div class="relative">
-              <i class="fas fa-user absolute left-3 top-3.5 text-gray-400"></i>
-              <input
-                type="text"
-                id="login-name"
-                required
-                class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-500 outline-none transition"
-                placeholder="ระบุชื่อของคุณ"
-              />
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            class="w-full bg-primary-600 hover:bg-primary-700 text-white font-bold py-3.5 rounded-lg shadow-lg transition transform hover:scale-[1.02] flex items-center justify-center gap-2"
-          >
-            <span>เข้าสู่ระบบ</span>
-            <i class="fas fa-arrow-right"></i>
-          </button>
-        </form>
-      </div>
     </div>
 
     <!-- ================= MAIN APP ================= -->
     <div id="app-screen" class="hidden flex flex-col min-h-screen">
-      <!-- Navbar (FULL WIDTH) -->
-      <nav
-        class="sticky top-0 z-40 glass border-b border-gray-200 dark:border-gray-700 shadow-sm"
-      >
-        <div class="w-full px-4">
-          <div class="flex justify-between h-16">
-            <div class="flex items-center gap-3">
-              <div
-                class="bg-primary-600 text-white w-9 h-9 rounded-lg flex items-center justify-center shadow-md"
-              >
-                <i class="fas fa-wrench text-sm"></i>
-              </div>
-              <div class="flex flex-col justify-center">
-                <span class="font-bold text-lg leading-tight tracking-tight"
-                  >Tool<span class="text-primary-600 dark:text-primary-400"
-                    >Master</span
-                  ></span
-                >
-                <div class="flex items-center gap-2">
-                  <span
-                    class="text-[10px] text-gray-500 dark:text-gray-400 uppercase tracking-wide"
-                    >Borrowing System</span
-                  >
-                  <span
-                    id="sync-status"
-                    class="w-2 h-2 rounded-full bg-green-500 animate-pulse"
-                    title="Realtime Sync Active"
-                  ></span>
+        <!-- Navbar -->
+        <nav class="sticky top-0 z-40 glass border-b border-gray-200 dark:border-gray-700 shadow-sm">
+            <div class="w-full px-4">
+                <div class="flex justify-between h-16">
+                    <div class="flex items-center gap-3">
+                        <div class="bg-primary-600 text-white w-9 h-9 rounded-lg flex items-center justify-center shadow-md">
+                            <i class="fas fa-wrench text-sm"></i>
+                        </div>
+                        <div class="flex flex-col justify-center">
+                            <span class="font-bold text-lg leading-tight tracking-tight">Tool<span class="text-primary-600 dark:text-primary-400">Master</span></span>
+                            <div class="flex items-center gap-2">
+                                <span class="text-[10px] text-gray-500 dark:text-gray-400 uppercase tracking-wide">Firebase Realtime</span>
+                                <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse" title="Online"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <button onclick="toggleTheme()" class="w-9 h-9 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-500 hover:text-orange-500 dark:hover:text-yellow-400 transition flex items-center justify-center">
+                            <i class="fas fa-moon dark:hidden"></i><i class="fas fa-sun hidden dark:block"></i>
+                        </button>
+                        <div class="relative group z-50">
+                            <button class="flex items-center gap-2 pl-2">
+                                <div class="text-right hidden sm:block">
+                                    <p id="user-display-name" class="text-sm font-semibold text-gray-900 dark:text-white truncate max-w-[120px]">User</p>
+                                    <p id="user-display-role" class="text-xs text-gray-500 dark:text-gray-400">Staff</p>
+                                </div>
+                                <div class="w-9 h-9 rounded-full bg-primary-100 dark:bg-primary-900 border-2 border-white dark:border-gray-600 flex items-center justify-center text-primary-600 dark:text-primary-300">
+                                    <i class="fas fa-user text-sm"></i>
+                                </div>
+                            </button>
+                            <div class="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-xl py-2 invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all transform origin-top-right border border-gray-100 dark:border-gray-700">
+                                <!-- Mobile User Info -->
+                                <div class="px-4 py-2 border-b border-gray-100 dark:border-gray-700 sm:hidden">
+                                    <p class="text-sm font-bold text-gray-900 dark:text-white" id="mobile-user-name">User</p>
+                                    <p class="text-xs text-gray-500" id="mobile-user-role">Staff</p>
+                                </div>
+                                <button onclick="DataService.loadData()" class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
+                                    <i class="fas fa-sync-alt mr-2 text-blue-500"></i> รีเฟรชข้อมูล
+                                </button>
+                                <button onclick="logout()" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20">
+                                    <i class="fas fa-sign-out-alt mr-2"></i> ออกจากระบบ
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-              </div>
             </div>
+        </nav>
 
-            <div class="flex items-center gap-3">
-              <button
-                onclick="toggleTheme()"
-                class="w-9 h-9 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-500 hover:text-orange-500 dark:hover:text-yellow-400 transition flex items-center justify-center"
-              >
-                <i class="fas fa-moon dark:hidden"></i>
-                <i class="fas fa-sun hidden dark:block"></i>
-              </button>
-
-              <!-- User Profile Dropdown -->
-              <div class="relative group z-50">
-                <button class="flex items-center gap-2 pl-2">
-                  <div class="text-right hidden sm:block">
-                    <p
-                      id="user-display-name"
-                      class="text-sm font-semibold text-gray-900 dark:text-white truncate max-w-[120px]"
-                    >
-                      User
-                    </p>
-                    <p
-                      id="user-display-role"
-                      class="text-xs text-gray-500 dark:text-gray-400"
-                    >
-                      Staff
-                    </p>
-                  </div>
-                  <div
-                    class="w-9 h-9 rounded-full bg-primary-100 dark:bg-primary-900 border-2 border-white dark:border-gray-600 flex items-center justify-center text-primary-600 dark:text-primary-300"
-                  >
-                    <i class="fas fa-user text-sm"></i>
-                  </div>
-                </button>
-                <!-- Dropdown Menu -->
-                <div
-                  class="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-xl py-2 invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all transform origin-top-right border border-gray-100 dark:border-gray-700"
-                >
-                  <div
-                    class="px-4 py-2 border-b border-gray-100 dark:border-gray-700 sm:hidden"
-                  >
-                    <p
-                      class="text-sm font-bold text-gray-900 dark:text-white"
-                      id="mobile-user-name"
-                    >
-                      User
-                    </p>
-                    <p class="text-xs text-gray-500" id="mobile-user-role">
-                      Staff
-                    </p>
-                  </div>
-                  <button
-                    onclick="DataService.loadData()"
-                    class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
-                  >
-                    <i class="fas fa-sync-alt mr-2 text-blue-500"></i>
-                    อัปเดตข้อมูลเดี๋ยวนี้
-                  </button>
-                  <button
-                    onclick="logout()"
-                    class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
-                  >
-                    <i class="fas fa-sign-out-alt mr-2"></i> ออกจากระบบ
-                  </button>
+        <!-- Tabs -->
+        <div class="bg-white dark:bg-dark-card shadow-sm border-b border-gray-200 dark:border-gray-700 sticky top-16 z-30">
+            <div class="w-full px-4">
+                <div class="flex space-x-2 overflow-x-auto no-scrollbar py-2">
+                    <button onclick="switchTab('inventory')" id="tab-inventory" class="tab-btn active-tab flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 transition-all">
+                        <i class="fas fa-box-open"></i> ยืมของ
+                    </button>
+                    <button onclick="switchTab('my-items')" id="tab-my-items" class="tab-btn flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 transition-all relative">
+                        <i class="fas fa-hand-holding"></i> รายการที่ฉันยืม
+                        <span id="my-items-badge" class="hidden absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] rounded-full flex items-center justify-center border-2 border-white dark:border-gray-800">0</span>
+                    </button>
+                    <button onclick="switchTab('verify')" id="tab-verify" class="tab-btn hidden flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 transition-all relative text-yellow-600 dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-900/20">
+                        <i class="fas fa-tasks"></i> ตรวจสอบคืนของ
+                        <span id="verify-badge" class="hidden absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] rounded-full flex items-center justify-center border-2 border-white dark:border-gray-800">0</span>
+                    </button>
+                    <button onclick="switchTab('history')" id="tab-history" class="tab-btn flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 transition-all">
+                        <i class="fas fa-history"></i> ประวัติ
+                    </button>
+                    <button onclick="switchTab('admin')" id="tab-admin" class="tab-btn hidden flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 transition-all text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/20">
+                        <i class="fas fa-cog"></i> จัดการ (Admin)
+                    </button>
                 </div>
-              </div>
             </div>
-          </div>
-        </div>
-      </nav>
-
-      <!-- Navigation Tabs (FULL WIDTH) -->
-      <div
-        class="bg-white dark:bg-dark-card shadow-sm border-b border-gray-200 dark:border-gray-700 sticky top-16 z-30"
-      >
-        <div class="w-full px-4">
-          <div class="flex space-x-2 overflow-x-auto no-scrollbar py-2">
-            <button
-              onclick="switchTab('inventory')"
-              id="tab-inventory"
-              class="tab-btn active-tab flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 transition-all"
-            >
-              <i class="fas fa-box-open"></i> ยืมของ
-            </button>
-            <button
-              onclick="switchTab('my-items')"
-              id="tab-my-items"
-              class="tab-btn flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 transition-all relative"
-            >
-              <i class="fas fa-hand-holding"></i> รายการที่ฉันยืม
-              <span
-                id="my-items-badge"
-                class="hidden absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] rounded-full flex items-center justify-center border-2 border-white dark:border-gray-800"
-                >0</span
-              >
-            </button>
-
-            <!-- NEW ADMIN TAB -->
-            <button
-              onclick="switchTab('verify')"
-              id="tab-verify"
-              class="tab-btn hidden flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 transition-all relative text-yellow-600 dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-900/20"
-            >
-              <i class="fas fa-tasks"></i> ตรวจสอบคืนของ
-              <span
-                id="verify-badge"
-                class="hidden absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] rounded-full flex items-center justify-center border-2 border-white dark:border-gray-800"
-                >0</span
-              >
-            </button>
-
-            <button
-              onclick="switchTab('history')"
-              id="tab-history"
-              class="tab-btn flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 transition-all"
-            >
-              <i class="fas fa-history"></i> ประวัติ
-            </button>
-            <button
-              onclick="switchTab('admin')"
-              id="tab-admin"
-              class="tab-btn hidden flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 transition-all text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/20"
-            >
-              <i class="fas fa-cog"></i> จัดการ (Admin)
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Content Area (FULL WIDTH) -->
-      <main class="flex-1 w-full px-4 py-6 pb-24">
-        <!-- VIEW 1: INVENTORY (ยืมของ) -->
-        <div id="view-inventory" class="fade-in">
-          <div
-            class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4"
-          >
-            <h2
-              class="text-xl font-bold flex items-center gap-2 whitespace-nowrap"
-            >
-              <i class="fas fa-search text-primary-500"></i> ค้นหาอุปกรณ์
-            </h2>
-            <div class="flex w-full md:w-auto gap-2">
-              <!-- Category Filter Dropdown -->
-              <div class="relative w-1/3 md:w-48">
-                <select
-                  id="filter-category"
-                  class="w-full appearance-none pl-4 pr-8 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm focus:ring-2 focus:ring-primary-500 outline-none shadow-sm cursor-pointer"
-                >
-                  <option value="">ทุกหมวดหมู่</option>
-                  <!-- JS Injected -->
-                </select>
-                <i
-                  class="fas fa-chevron-down absolute right-3 top-3.5 text-gray-400 pointer-events-none text-xs"
-                ></i>
-              </div>
-
-              <!-- Search Input -->
-              <div class="relative w-2/3 md:w-64">
-                <input
-                  type="text"
-                  id="search-inventory"
-                  placeholder="ชื่ออุปกรณ์..."
-                  class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-primary-500 outline-none shadow-sm text-sm"
-                />
-                <i
-                  class="fas fa-search absolute left-3 top-3.5 text-gray-400"
-                ></i>
-              </div>
-            </div>
-          </div>
-
-          <div
-            id="inventory-grid"
-            class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 sm:gap-6"
-          >
-            <!-- Cards injected by JS -->
-          </div>
         </div>
 
-        <!-- VIEW 2: MY ITEMS (รายการที่กำลังยืม) -->
-        <div id="view-my-items" class="hidden fade-in">
-          <div class="flex justify-between items-end mb-6">
-            <div>
-              <h2 class="text-2xl font-bold text-gray-800 dark:text-white">
-                รายการที่ฉันยืม
-              </h2>
-              <p class="text-sm text-gray-500 dark:text-gray-400">
-                จัดการการคืนอุปกรณ์ของคุณ
-              </p>
+        <!-- Content -->
+        <main class="flex-1 w-full px-4 py-6 pb-24">
+            <!-- VIEW 1: INVENTORY -->
+            <div id="view-inventory" class="fade-in">
+                <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+                    <h2 class="text-xl font-bold flex items-center gap-2 whitespace-nowrap"><i class="fas fa-search text-primary-500"></i> ค้นหาอุปกรณ์</h2>
+                    <div class="flex w-full md:w-auto gap-2">
+                        <div class="relative w-1/3 md:w-48">
+                            <select id="filter-category" class="w-full appearance-none pl-4 pr-8 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm focus:ring-2 focus:ring-primary-500 outline-none shadow-sm cursor-pointer">
+                                <option value="">ทุกหมวดหมู่</option>
+                            </select>
+                            <i class="fas fa-chevron-down absolute right-3 top-3.5 text-gray-400 pointer-events-none text-xs"></i>
+                        </div>
+                        <div class="relative w-2/3 md:w-64">
+                            <input type="text" id="search-inventory" placeholder="ชื่ออุปกรณ์..." class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-primary-500 outline-none shadow-sm text-sm">
+                            <i class="fas fa-search absolute left-3 top-3.5 text-gray-400"></i>
+                        </div>
+                    </div>
+                </div>
+                <div id="inventory-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 sm:gap-6"></div>
             </div>
-            <div class="flex gap-2">
-              <button
-                onclick="returnAllItems()"
-                id="btn-return-all"
-                class="hidden bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded-lg text-sm shadow-md transition flex items-center gap-2"
-              >
-                <i class="fas fa-undo-alt"></i> คืนทั้งหมด
-              </button>
-              <div class="text-right">
-                <span
-                  id="my-active-count"
-                  class="text-3xl font-bold text-primary-600"
-                  >0</span
-                >
-                <span class="text-sm text-gray-500">รายการ</span>
-              </div>
-            </div>
-          </div>
 
-          <!-- Active Borrows (Can Return) -->
-          <div class="mb-6">
-            <h3
-              class="text-lg font-semibold mb-3 text-gray-700 dark:text-gray-200 border-l-4 border-primary-500 pl-3"
-            >
-              กำลังยืม (Active)
-            </h3>
-            <div
-              id="my-items-active-list"
-              class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
-            >
-              <!-- Cards -->
+            <!-- VIEW 2: MY ITEMS -->
+            <div id="view-my-items" class="hidden fade-in">
+                <div class="flex justify-between items-end mb-6">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-800 dark:text-white">รายการที่ฉันยืม</h2>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">จัดการการคืนอุปกรณ์ของคุณ</p>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="returnAllItems()" id="btn-return-all" class="hidden bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded-lg text-sm shadow-md transition flex items-center gap-2">
+                            <i class="fas fa-undo-alt"></i> คืนทั้งหมด
+                        </button>
+                    </div>
+                </div>
+                <div class="mb-6">
+                    <h3 class="text-lg font-semibold mb-3 text-gray-700 dark:text-gray-200 border-l-4 border-primary-500 pl-3">กำลังยืม (Active)</h3>
+                    <div id="my-items-active-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+                    <div id="my-items-active-empty" class="hidden text-center py-6 text-gray-400 text-sm bg-gray-50 dark:bg-gray-800 rounded-xl">ไม่มีรายการที่กำลังยืม</div>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold mb-3 text-gray-700 dark:text-gray-200 border-l-4 border-yellow-500 pl-3">รอการยืนยัน (Pending Confirmation)</h3>
+                    <div id="my-items-pending-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+                    <div id="my-items-pending-empty" class="hidden text-center py-6 text-gray-400 text-sm bg-gray-50 dark:bg-gray-800 rounded-xl">ไม่มีรายการที่รอการยืนยัน</div>
+                </div>
             </div>
-            <div
-              id="my-items-active-empty"
-              class="hidden text-center py-6 text-gray-400 text-sm bg-gray-50 dark:bg-gray-800 rounded-xl"
-            >
-              ไม่มีรายการที่กำลังยืม
+
+            <!-- VIEW 3: VERIFY (Admin) -->
+            <div id="view-verify" class="hidden fade-in">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold">ตรวจสอบคืนของ</h2>
+                    <button onclick="verifyAllReturns()" id="btn-verify-all" class="hidden bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg text-sm shadow-md transition flex items-center gap-2">
+                        <i class="fas fa-check-double"></i> รับคืนทั้งหมด
+                    </button>
+                </div>
+                <div id="verify-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+                <div id="verify-empty" class="hidden text-center py-12 bg-white dark:bg-dark-card rounded-xl border border-dashed border-gray-300 dark:border-gray-700">ไม่มีรายการรอตรวจสอบ</div>
             </div>
-          </div>
 
-          <!-- Pending Returns (Waiting for Admin) -->
-          <div>
-            <h3
-              class="text-lg font-semibold mb-3 text-gray-700 dark:text-gray-200 border-l-4 border-yellow-500 pl-3"
-            >
-              รอการยืนยัน (Pending Confirmation)
-            </h3>
-            <div
-              id="my-items-pending-list"
-              class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
-            >
-              <!-- Cards -->
+            <!-- VIEW 4: HISTORY -->
+            <div id="view-history" class="hidden fade-in">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-bold">ประวัติการยืม-คืน</h2>
+                    <span class="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-gray-500" id="history-filter-label">แสดงเฉพาะของฉัน</span>
+                </div>
+                <div class="bg-white dark:bg-dark-card rounded-xl shadow-sm overflow-hidden border border-gray-200 dark:border-gray-700 overflow-x-auto">
+                    <table class="w-full text-sm text-left">
+                        <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-300 border-b dark:border-gray-600">
+                            <tr>
+                                <th class="px-4 py-3">วันที่ยืม</th>
+                                <th class="px-4 py-3">ผู้ยืม</th>
+                                <th class="px-4 py-3">อุปกรณ์</th>
+                                <th class="px-4 py-3 text-center">จำนวน</th>
+                                <th class="px-4 py-3 text-center">สถานะ</th>
+                                <th class="px-4 py-3 text-center">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-table-body" class="divide-y divide-gray-200 dark:divide-gray-700"></tbody>
+                    </table>
+                </div>
             </div>
-            <div
-              id="my-items-pending-empty"
-              class="hidden text-center py-6 text-gray-400 text-sm bg-gray-50 dark:bg-gray-800 rounded-xl"
-            >
-              ไม่มีรายการที่รอการยืนยัน
+
+            <!-- VIEW 5: ADMIN STOCK -->
+            <div id="view-admin" class="hidden fade-in">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-bold">จัดการสต็อก</h2>
+                    <button onclick="openAddModal()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg shadow text-sm"><i class="fas fa-plus"></i> เพิ่มอุปกรณ์</button>
+                </div>
+                <div class="bg-white dark:bg-dark-card rounded-xl shadow-sm overflow-hidden border border-gray-200 dark:border-gray-700 overflow-x-auto">
+                    <table class="w-full text-sm text-left">
+                        <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-300 border-b dark:border-gray-600">
+                            <tr>
+                                <th class="px-4 py-3 w-16 text-center">รูป</th>
+                                <th class="px-4 py-3">ชื่ออุปกรณ์</th>
+                                <th class="px-4 py-3">หมวดหมู่</th>
+                                <th class="px-4 py-3 text-center">Stock</th>
+                                <th class="px-4 py-3 text-center">จัดการ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-table-body" class="divide-y divide-gray-200 dark:divide-gray-700"></tbody>
+                    </table>
+                </div>
             </div>
-          </div>
-
-          <div
-            id="my-items-all-empty"
-            class="hidden flex flex-col items-center justify-center py-12 text-center mt-8"
-          >
-            <div
-              class="w-24 h-24 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-4"
-            >
-              <i class="fas fa-check text-4xl text-green-500"></i>
-            </div>
-            <h3 class="text-lg font-bold text-gray-700 dark:text-gray-300">
-              ไม่มีรายการค้างส่งคืน
-            </h3>
-            <button
-              onclick="switchTab('inventory')"
-              class="mt-6 px-6 py-2 bg-primary-600 text-white rounded-lg shadow hover:bg-primary-700"
-            >
-              ไปหน้ายืมของ
-            </button>
-          </div>
-        </div>
-
-        <!-- VIEW 3: VERIFY (Admin Only - Confirm Return) -->
-        <div id="view-verify" class="hidden fade-in">
-          <div class="flex justify-between items-end mb-6">
-            <div>
-              <h2 class="text-2xl font-bold text-gray-800 dark:text-white">
-                ตรวจสอบคืนของ
-              </h2>
-              <p class="text-sm text-gray-500 dark:text-gray-400">
-                รายการที่ผู้ใช้กดคืนมาแล้ว (รอการยืนยัน)
-              </p>
-            </div>
-            <div class="flex gap-2">
-              <button
-                onclick="verifyAllReturns()"
-                id="btn-verify-all"
-                class="hidden bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg text-sm shadow-md transition flex items-center gap-2"
-              >
-                <i class="fas fa-check-double"></i> รับคืนทั้งหมด
-              </button>
-              <button
-                onclick="DataService.loadData()"
-                class="text-primary-600 hover:text-primary-700 text-sm font-medium self-center"
-              >
-                <i class="fas fa-sync-alt"></i> Refresh
-              </button>
-            </div>
-          </div>
-
-          <div
-            id="verify-list"
-            class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
-          >
-            <!-- Cards -->
-          </div>
-
-          <div
-            id="verify-empty"
-            class="hidden flex flex-col items-center justify-center py-12 text-center bg-white dark:bg-dark-card rounded-xl border border-dashed border-gray-300 dark:border-gray-700"
-          >
-            <i class="fas fa-clipboard-check text-4xl text-gray-300 mb-3"></i>
-            <p class="text-gray-500">ไม่มีรายการรอตรวจสอบ</p>
-          </div>
-        </div>
-
-        <!-- VIEW 4: HISTORY (ประวัติ) -->
-        <div id="view-history" class="hidden fade-in">
-          <div class="flex justify-between items-center mb-6">
-            <h2 class="text-xl font-bold">ประวัติการยืม-คืน</h2>
-            <span
-              class="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-gray-500"
-              id="history-filter-label"
-              >แสดงเฉพาะของฉัน</span
-            >
-          </div>
-
-          <div
-            class="bg-white dark:bg-dark-card rounded-xl shadow-sm overflow-hidden border border-gray-200 dark:border-gray-700"
-          >
-            <div class="overflow-x-auto">
-              <table class="w-full text-sm text-left">
-                <thead
-                  class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-300 border-b dark:border-gray-600"
-                >
-                  <tr>
-                    <th class="px-4 py-3 whitespace-nowrap">วันที่ยืม</th>
-                    <th class="px-4 py-3 whitespace-nowrap">ผู้ยืม (EmpID)</th>
-                    <th class="px-4 py-3 whitespace-nowrap">อุปกรณ์</th>
-                    <th class="px-4 py-3 text-center whitespace-nowrap">
-                      จำนวน
-                    </th>
-                    <th class="px-4 py-3 text-center whitespace-nowrap">
-                      สถานะ
-                    </th>
-                    <th class="px-4 py-3 whitespace-nowrap text-center">
-                      Action
-                    </th>
-                  </tr>
-                </thead>
-                <tbody
-                  id="history-table-body"
-                  class="divide-y divide-gray-200 dark:divide-gray-700"
-                >
-                  <!-- Rows -->
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-
-        <!-- VIEW 5: ADMIN STOCK -->
-        <div id="view-admin" class="hidden fade-in">
-          <div class="flex justify-between items-center mb-6">
-            <h2 class="text-xl font-bold">จัดการสต็อกอุปกรณ์</h2>
-            <button
-              onclick="openAddModal()"
-              class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg shadow flex items-center gap-2 text-sm"
-            >
-              <i class="fas fa-plus"></i>
-              <span class="hidden sm:inline">เพิ่มอุปกรณ์</span>
-            </button>
-          </div>
-
-          <div
-            class="bg-white dark:bg-dark-card rounded-xl shadow-sm overflow-hidden border border-gray-200 dark:border-gray-700"
-          >
-            <div class="overflow-x-auto">
-              <table class="w-full text-sm text-left">
-                <thead
-                  class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-300 border-b dark:border-gray-600"
-                >
-                  <tr>
-                    <th class="px-4 py-3 w-16 text-center">รูป</th>
-                    <th class="px-4 py-3">ชื่ออุปกรณ์</th>
-                    <th class="px-4 py-3 hidden sm:table-cell">หมวดหมู่</th>
-                    <th class="px-4 py-3 text-center">Stock</th>
-                    <th class="px-4 py-3 text-center">จัดการ</th>
-                  </tr>
-                </thead>
-                <tbody
-                  id="admin-table-body"
-                  class="divide-y divide-gray-200 dark:divide-gray-700"
-                >
-                  <!-- Rows -->
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      </main>
+        </main>
     </div>
 
-    <!-- ================= MODALS ================= -->
-
-    <!-- Borrow Modal (CENTER SCREEN) -->
-    <div
-      id="borrow-modal"
-      class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 hidden backdrop-blur-sm p-4"
-    >
-      <div
-        class="bg-white dark:bg-dark-card w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden transform transition-all scale-100"
-      >
-        <div class="p-6">
-          <div class="flex gap-4 mb-4">
-            <img
-              id="borrow-img-preview"
-              src=""
-              class="w-20 h-20 rounded-lg object-cover bg-gray-100"
-            />
-            <div>
-              <h3
-                class="text-lg font-bold text-gray-900 dark:text-white leading-tight mb-1"
-                id="borrow-item-name"
-              >
-                Item Name
-              </h3>
-              <p class="text-xs text-gray-500">
-                คงเหลือในสต็อก:
-                <span
-                  id="borrow-item-max"
-                  class="font-bold text-primary-600 text-base"
-                  >5</span
-                >
-              </p>
+    <!-- MODALS -->
+    <div id="borrow-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 hidden backdrop-blur-sm p-4">
+        <div class="bg-white dark:bg-dark-card w-full max-w-sm rounded-2xl shadow-2xl p-6">
+            <div class="flex gap-4 mb-4">
+                <img id="borrow-img-preview" src="" class="w-20 h-20 rounded-lg object-cover bg-gray-100">
+                <div>
+                    <h3 class="text-lg font-bold text-gray-900 dark:text-white leading-tight mb-1" id="borrow-item-name"></h3>
+                    <p class="text-xs text-gray-500">คงเหลือ: <span id="borrow-item-max" class="font-bold text-primary-600 text-base"></span></p>
+                </div>
             </div>
-          </div>
-
-          <div class="bg-gray-50 dark:bg-gray-800 rounded-xl p-4 mb-6">
-            <label class="block text-sm font-medium mb-3 text-center"
-              >ระบุจำนวนที่ต้องการยืม</label
-            >
-            <div class="flex items-center justify-center gap-4">
-              <button
-                type="button"
-                onclick="adjustQty(-1)"
-                class="w-10 h-10 rounded-full bg-white dark:bg-gray-700 shadow border border-gray-200 dark:border-gray-600 flex items-center justify-center text-lg active:scale-90 transition"
-              >
-                <i class="fas fa-minus text-gray-500"></i>
-              </button>
-              <input
-                type="number"
-                id="borrow-qty"
-                min="1"
-                value="1"
-                readonly
-                class="w-16 text-center text-2xl font-bold bg-transparent outline-none"
-              />
-              <button
-                type="button"
-                onclick="adjustQty(1)"
-                class="w-10 h-10 rounded-full bg-white dark:bg-gray-700 shadow border border-gray-200 dark:border-gray-600 flex items-center justify-center text-lg active:scale-90 transition"
-              >
-                <i class="fas fa-plus text-primary-600"></i>
-              </button>
+            <div class="flex items-center justify-center gap-4 mb-6">
+                <button onclick="adjustQty(-1)" class="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-700"><i class="fas fa-minus"></i></button>
+                <input type="number" id="borrow-qty" min="1" value="1" readonly class="w-16 text-center text-2xl font-bold bg-transparent outline-none">
+                <button onclick="adjustQty(1)" class="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-700"><i class="fas fa-plus"></i></button>
             </div>
-          </div>
-
-          <div class="grid grid-cols-2 gap-3">
-            <button
-              onclick="closeModal('borrow-modal')"
-              class="py-3 rounded-xl border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 font-medium hover:bg-gray-50 dark:hover:bg-gray-700"
-            >
-              ยกเลิก
-            </button>
-            <button
-              id="btn-confirm-borrow"
-              onclick="confirmBorrow()"
-              class="py-3 rounded-xl bg-primary-600 text-white font-bold shadow-lg hover:bg-primary-700 hover:shadow-primary-500/30 flex items-center justify-center gap-2"
-            >
-              ยืนยันการยืม
-            </button>
-          </div>
+            <div class="grid grid-cols-2 gap-3">
+                <button onclick="closeModal('borrow-modal')" class="py-3 rounded-xl border border-gray-200 dark:border-gray-600 text-gray-500">ยกเลิก</button>
+                <button id="btn-confirm-borrow" onclick="confirmBorrow()" class="py-3 rounded-xl bg-primary-600 text-white font-bold shadow-lg">ยืนยัน</button>
+            </div>
         </div>
-      </div>
     </div>
 
-    <!-- Add/Edit Item Modal -->
-    <div
-      id="item-modal"
-      class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 hidden backdrop-blur-sm p-4"
-    >
-      <div
-        class="bg-white dark:bg-dark-card w-full max-w-md rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
-      >
-        <div
-          class="p-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center"
-        >
-          <h3 id="item-modal-title" class="text-lg font-bold">จัดการอุปกรณ์</h3>
-          <button
-            onclick="closeModal('item-modal')"
-            class="text-gray-400 hover:text-gray-600"
-          >
-            <i class="fas fa-times text-lg"></i>
-          </button>
-        </div>
+    <div id="item-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 hidden backdrop-blur-sm p-4">
+        <div class="bg-white dark:bg-dark-card w-full max-w-md rounded-2xl shadow-2xl p-6 overflow-y-auto max-h-[90vh]">
+            <h3 id="item-modal-title" class="text-lg font-bold mb-4">จัดการอุปกรณ์</h3>
+            <form id="item-form" class="space-y-4">
+                <input type="hidden" id="item-id">
+                
+                <!-- NEW: Toggle Image Source -->
+                <div>
+                    <label class="block text-sm mb-2 font-medium">รูปภาพอุปกรณ์</label>
+                    <div class="flex gap-4 mb-3">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="radio" name="img-source" value="file" checked class="text-primary-600" onchange="toggleImageSource('file')">
+                            <span class="text-sm">อัปโหลดไฟล์</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="radio" name="img-source" value="url" class="text-primary-600" onchange="toggleImageSource('url')">
+                            <span class="text-sm">ใช้ลิงก์รูปภาพ (URL)</span>
+                        </label>
+                    </div>
 
-        <div class="p-6 overflow-y-auto">
-          <form id="item-form" class="space-y-4">
-            <input type="hidden" id="item-id" />
+                    <div class="flex items-start gap-4 p-3 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800">
+                         <div class="w-24 h-24 bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden border flex-shrink-0 relative group">
+                             <img id="item-image-preview" src="https://placehold.co/100?text=Preview" class="w-full h-full object-cover">
+                             <div id="upload-loading-spinner" class="absolute inset-0 bg-black/50 flex items-center justify-center hidden">
+                                 <i class="fas fa-circle-notch fa-spin text-white"></i>
+                             </div>
+                         </div>
+                         <div class="flex-1 min-w-0">
+                             <!-- File Input -->
+                             <div id="input-type-file">
+                                 <label class="cursor-pointer bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 px-4 py-2 rounded-lg text-sm inline-flex items-center gap-2 hover:bg-gray-50 dark:hover:bg-gray-600 transition shadow-sm w-full justify-center">
+                                    <i class="fas fa-camera"></i> เลือกไฟล์รูปภาพ
+                                    <input type="file" id="item-image-file" accept="image/*" class="hidden">
+                                 </label>
+                                 <p class="text-xs text-gray-400 mt-2">รองรับ JPG, PNG (ระบบจะย่อให้อัตโนมัติ)</p>
+                             </div>
 
-            <div>
-              <label class="block text-sm mb-2 font-medium">รูปภาพ</label>
-              <div class="flex items-center gap-4">
-                <div
-                  class="relative w-24 h-24 bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-600 group"
-                >
-                  <img
-                    id="item-image-preview"
-                    src="https://placehold.co/100?text=Image"
-                    class="w-full h-full object-cover"
-                  />
-                  <div
-                    id="upload-loading-spinner"
-                    class="absolute inset-0 bg-black/50 flex items-center justify-center hidden"
-                  >
-                    <i class="fas fa-circle-notch fa-spin text-white"></i>
-                  </div>
+                             <!-- URL Input -->
+                             <div id="input-type-url" class="hidden">
+                                 <input type="url" id="item-image-url" placeholder="https://example.com/image.jpg" class="w-full px-3 py-2 text-sm border rounded-lg dark:bg-gray-700 dark:border-gray-600 focus:ring-2 focus:ring-primary-500 outline-none">
+                                 <p class="text-xs text-gray-400 mt-2">วางลิงก์รูปภาพจากเว็บอื่น</p>
+                             </div>
+
+                             <input type="hidden" id="item-image">
+                         </div>
+                    </div>
                 </div>
-                <div class="flex-1">
-                  <label
-                    class="cursor-pointer bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 transition px-4 py-2 rounded-lg text-sm font-medium inline-flex items-center gap-2 shadow-sm"
-                  >
-                    <i class="fas fa-camera text-primary-500"></i> เลือกรูปภาพ
-                    <input
-                      type="file"
-                      id="item-image-file"
-                      accept="image/*"
-                      class="hidden"
-                    />
-                  </label>
-                  <p class="text-xs text-gray-400 mt-2">
-                    รองรับ JPG, PNG (ระบบจะย่อให้อัตโนมัติ)
-                  </p>
+
+                <input type="text" id="item-name" required placeholder="ชื่ออุปกรณ์" class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <input type="text" list="category-list" id="item-category" placeholder="หมวดหมู่" class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700">
+                        <datalist id="category-list"></datalist>
+                    </div>
+                    <input type="number" id="item-stock" min="1" required placeholder="จำนวน Stock" class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700">
                 </div>
-                <input type="hidden" id="item-image" />
-              </div>
-            </div>
-
-            <div>
-              <label class="block text-sm mb-1 font-medium">ชื่ออุปกรณ์</label>
-              <input
-                type="text"
-                id="item-name"
-                required
-                class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary-500 outline-none"
-              />
-            </div>
-
-            <div class="grid grid-cols-2 gap-4">
-              <div>
-                <label class="block text-sm mb-1 font-medium">หมวดหมู่</label>
-                <!-- Datalist for Category -->
-                <input
-                  type="text"
-                  list="category-list"
-                  id="item-category"
-                  placeholder="เลือกหรือพิมพ์ใหม่"
-                  class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary-500 outline-none"
-                />
-                <datalist id="category-list">
-                  <!-- JS Injected -->
-                </datalist>
-              </div>
-              <div>
-                <label class="block text-sm mb-1 font-medium"
-                  >Stock ทั้งหมด</label
-                >
-                <input
-                  type="number"
-                  id="item-stock"
-                  min="1"
-                  required
-                  class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary-500 outline-none"
-                />
-              </div>
-            </div>
-
-            <div
-              class="pt-4 mt-4 border-t border-gray-100 dark:border-gray-700 flex justify-end gap-3"
-            >
-              <button
-                type="button"
-                onclick="closeModal('item-modal')"
-                class="px-4 py-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition"
-              >
-                ยกเลิก
-              </button>
-              <button
-                type="submit"
-                class="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 shadow-lg"
-              >
-                บันทึกข้อมูล
-              </button>
-            </div>
-          </form>
+                <div class="flex justify-end gap-3 pt-4">
+                    <button type="button" onclick="closeModal('item-modal')" class="px-4 py-2 text-gray-500">ยกเลิก</button>
+                    <button type="submit" class="px-6 py-2 bg-primary-600 text-white rounded-lg shadow">บันทึก</button>
+                </div>
+            </form>
         </div>
-      </div>
     </div>
 
-    <!-- ================= LOGIC ================= -->
-    <script>
-      // --- GLOBAL STATE ---
-      let currentUser = null;
-      let inventoryData = [];
-      let transactionLogs = [];
-      let adminList = [];
-      let categoryList = [];
-      let currentBorrowItemId = null;
-      let syncInterval = null;
+    <!-- ================= FIREBASE SDK ================= -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+        import { getFirestore, collection, doc, getDocs, getDoc, addDoc, updateDoc, deleteDoc, onSnapshot, query, where, orderBy, runTransaction, writeBatch } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
-      // **New Logic for Sync/Save Management**
-      let isSaving = false; // Flag to indicate if background save is in progress
-      let saveQueue = Promise.resolve(); // Queue for sequential saving
-      let lastUserActionTime = 0; // NEW: Track interaction time to prevent sync race condition
+        // --- FIREBASE CONFIGURATION ---
+        // NOTE: ข้อมูลส่วนนี้เปิดเผยได้ (Public) ไม่ใช่ความลับระดับ Server
+        // แต่ต้องไปตั้งค่า "Domain Restriction" ใน Google Cloud Console 
+        // ให้ยอมรับ request จาก https://your-username.github.io เท่านั้น
+       const firebaseConfig = {
+          apiKey: "AIzaSyCqP4PJZjifXa96NLdJ5Dd9A9AWLYcIiqs",
+          authDomain: "borrow-tools-system.firebaseapp.com",
+          projectId: "borrow-tools-system",
+          storageBucket: "borrow-tools-system.firebasestorage.app",
+          messagingSenderId: "1027262105690",
+          appId: "1:1027262105690:web:0db3c601e67ef04a303063"
+        };
 
-      // --- UTILS ---
-      const toggleLoading = (show) => {
-        const el = document.getElementById("loading-overlay");
-        show ? el.classList.remove("hidden") : el.classList.add("hidden");
-      };
+        // Initialize Firebase
+        let app, db;
+        try {
+            app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            console.log("Firebase Connected");
+        } catch (e) {
+            console.error("Firebase Config Error:", e);
+            Swal.fire({
+                icon: 'error',
+                title: 'Config Error',
+                text: 'กรุณาใส่ค่า Firebase Config ในไฟล์ HTML',
+                footer: '<a href="#">ดูวิธีตั้งค่าในคู่มือ</a>'
+            });
+        }
 
-      const toggleSaving = (show) => {
-        const el = document.getElementById("saving-indicator");
-        show ? el.classList.remove("hidden") : el.classList.add("hidden");
-      };
+        // --- GLOBAL STATE ---
+        window.currentUser = null;
+        window.inventoryData = [];
+        window.transactionLogs = [];
+        window.currentBorrowItemId = null;
 
-      const closeModal = (id) =>
-        document.getElementById(id).classList.add("hidden");
+        // --- EXPORT FUNCTIONS ---
+        window.switchTab = switchTab;
+        window.closeModal = (id) => document.getElementById(id).classList.add('hidden');
+        window.toggleTheme = toggleTheme;
+        window.adjustQty = (n) => {
+            const el = document.getElementById('borrow-qty');
+            let v = parseInt(el.value) + n;
+            let max = parseInt(el.max || 1);
+            if(v < 1) v = 1;
+            if(v > max) v = max;
+            el.value = v;
+        };
 
-      // Image Resizing
-      function resizeImage(file, maxWidth = 800) {
-        return new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          reader.readAsDataURL(file);
-          reader.onload = (event) => {
-            const img = new Image();
-            img.src = event.target.result;
-            img.onload = () => {
-              const canvas = document.createElement("canvas");
-              let w = img.width,
-                h = img.height;
-              if (w > maxWidth) {
-                h = Math.round((h * maxWidth) / w);
-                w = maxWidth;
-              }
-              canvas.width = w;
-              canvas.height = h;
-              const ctx = canvas.getContext("2d");
-              ctx.drawImage(img, 0, 0, w, h);
-              resolve(canvas.toDataURL("image/jpeg", 0.6));
-            };
-            img.onerror = reject;
-          };
-        });
-      }
-
-      document
-        .getElementById("item-image-file")
-        .addEventListener("change", async (e) => {
-          if (!e.target.files[0]) return;
-          document
-            .getElementById("upload-loading-spinner")
-            .classList.remove("hidden");
-          try {
-            const base64 = await resizeImage(e.target.files[0]);
-            document.getElementById("item-image-preview").src = base64;
-            document.getElementById("item-image").value = base64;
-          } catch (err) {
-            console.error(err);
-            Swal.fire("Error", "รูปภาพมีปัญหา", "error");
-          } finally {
-            document
-              .getElementById("upload-loading-spinner")
-              .classList.add("hidden");
-          }
-        });
-
-      // --- DATA SERVICE ---
-      const DataService = {
-        async loadData(silent = false) {
-          // **CRITICAL FIX**: Don't sync if saving or user recently acted (within 15 sec)
-          // This prevents "Bouncing UI" where stale server data overwrites optimistic updates
-          if (isSaving || Date.now() - lastUserActionTime < 15000) {
-            if (!silent) console.log("Skipping sync: User active or saving");
-            return;
-          }
-
-          if (!silent) toggleLoading(true);
-          try {
-            const response = await fetch(APP_CONFIG.googleScriptUrl);
-            const result = await response.json();
-
-            if (result.status === "success") {
-              inventoryData = result.inventory || [];
-              transactionLogs = result.logs || [];
-              adminList = result.admins || [];
-              categoryList = result.categories || [];
-
-              // Cache
-              localStorage.setItem(
-                APP_CONFIG.storageKeys.localData,
-                JSON.stringify(inventoryData),
-              );
-              localStorage.setItem(
-                APP_CONFIG.storageKeys.localLogs,
-                JSON.stringify(transactionLogs),
-              );
-              localStorage.setItem(
-                APP_CONFIG.storageKeys.localAdmins,
-                JSON.stringify(adminList),
-              );
-              localStorage.setItem(
-                APP_CONFIG.storageKeys.localCats,
-                JSON.stringify(categoryList),
-              );
-
-              if (currentUser) refreshUI();
+        // --- FIX: DataService for Firebase ---
+        // เพิ่ม DataService object เพื่อรองรับปุ่ม refresh ใน HTML
+        window.DataService = {
+            loadData: () => {
+                // สำหรับ Firebase เราใช้ Realtime Listener อยู่แล้ว
+                // แต่ถ้าผู้ใช้กดปุ่ม เราสามารถ refresh หน้าจอหรือแค่แจ้งว่าข้อมูลล่าสุดแล้ว
+                const icon = document.querySelector('.fa-sync-alt');
+                if(icon) {
+                    icon.classList.add('fa-spin');
+                    setTimeout(() => icon.classList.remove('fa-spin'), 1000);
+                }
+                console.log("Firebase Data is Realtime synced.");
             }
-          } catch (err) {
-            if (!silent) {
-              console.warn("Offline/Error:", err);
-              Swal.fire({
-                icon: "info",
-                title: "Connect Error",
-                text: "Using offline data",
-                timer: 1500,
-              });
-              // Fallback
-              inventoryData =
-                JSON.parse(
-                  localStorage.getItem(APP_CONFIG.storageKeys.localData),
-                ) || [];
-              transactionLogs =
-                JSON.parse(
-                  localStorage.getItem(APP_CONFIG.storageKeys.localLogs),
-                ) || [];
-              categoryList =
-                JSON.parse(
-                  localStorage.getItem(APP_CONFIG.storageKeys.localCats),
-                ) || [];
-              if (currentUser) refreshUI();
+        };
+
+        // --- AUTH ---
+        window.login = async (e) => {
+            e.preventDefault();
+            const inputId = document.getElementById('login-id').value.trim();
+            const inputName = document.getElementById('login-name').value.trim();
+            if(!inputId) return;
+
+            document.getElementById('loading-overlay').classList.remove('hidden');
+            
+            try {
+                // Auth by checking 'users' collection
+                const q = query(collection(db, "users"), where("empId", "==", inputId));
+                const querySnapshot = await getDocs(q);
+
+                if (!querySnapshot.empty) {
+                    const userData = querySnapshot.docs[0].data();
+                    const user = {
+                        empId: userData.empId,
+                        name: userData.name,
+                        isAdmin: userData.role === 'admin'
+                    };
+                    localStorage.setItem('ems_user_fb', JSON.stringify(user));
+                    initApp(user);
+                } else {
+                    // **NEW LOGIC: Auto-register or allow login if not found**
+                    // If user provides Name, assume they want to enter as new user/guest
+                    
+                    // Create new user object
+                    const newUser = {
+                        empId: inputId,
+                        name: inputName || `User ${inputId}`, // Use input name or fallback
+                        role: inputId === '9999' ? 'admin' : 'user'
+                    };
+
+                    // Try to save to Firestore for future logins
+                    try {
+                        await addDoc(collection(db, "users"), newUser);
+                    } catch(err) {
+                        console.warn("Auto-register to Firestore failed (might be permission), proceeding locally", err);
+                    }
+
+                    const user = { ...newUser, isAdmin: newUser.role === 'admin' };
+                    localStorage.setItem('ems_user_fb', JSON.stringify(user));
+                    initApp(user);
+                }
+            } catch (err) {
+                console.error(err);
+                Swal.fire('Login Error', 'ตรวจสอบ Config Firebase', 'error');
+            } finally {
+                document.getElementById('loading-overlay').classList.add('hidden');
             }
-          } finally {
-            if (!silent) toggleLoading(false);
-          }
-        },
+        };
+        document.getElementById('login-form').addEventListener('submit', window.login);
 
-        // Queue-based Saving
-        async saveData(payload = {}, showLoading = true) {
-          // Update timestamp immediately when save is REQUESTED
-          lastUserActionTime = Date.now();
+        window.logout = () => {
+            localStorage.removeItem('ems_user_fb');
+            location.reload();
+        };
 
-          // Add to queue
-          saveQueue = saveQueue.then(async () => {
-            if (showLoading) toggleLoading(true);
-            else toggleSaving(true);
+        function initApp(user) {
+            window.currentUser = user;
+            
+            document.getElementById('user-display-name').innerText = user.name;
+            document.getElementById('user-display-role').innerText = user.isAdmin ? "Admin" : "User";
+            
+            // Check if mobile elements exist before setting innerText
+            const mobileName = document.getElementById('mobile-user-name');
+            if (mobileName) mobileName.innerText = user.name;
+            
+            const mobileRole = document.getElementById('mobile-user-role');
+            if (mobileRole) mobileRole.innerText = user.isAdmin ? "Admin" : "User";
 
-            isSaving = true;
+            const adminTab = document.getElementById('tab-admin');
+            const verifyTab = document.getElementById('tab-verify');
+            if (user.isAdmin) {
+                adminTab.classList.remove('hidden');
+                verifyTab.classList.remove('hidden');
+            } else {
+                adminTab.classList.add('hidden');
+                verifyTab.classList.add('hidden');
+            }
+
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('app-screen').classList.remove('hidden');
+
+            startRealtimeListeners();
+            switchTab('inventory');
+        }
+
+        // --- REALTIME LISTENERS ---
+        function startRealtimeListeners() {
+            // Inventory Listener
+            onSnapshot(collection(db, "inventory"), (snapshot) => {
+                window.inventoryData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderInventory();
+                if(window.currentUser.isAdmin) renderAdminTable();
+                populateCategories();
+            });
+
+            // Logs Listener
+            onSnapshot(collection(db, "logs"), (snapshot) => {
+                window.transactionLogs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderHistory();
+                renderMyItems();
+                if(window.currentUser.isAdmin) renderVerify();
+            });
+        }
+
+        // --- CORE LOGIC ---
+
+        window.openBorrowModal = (id) => {
+            const item = window.inventoryData.find(i => i.id == id);
+            if (!item) return;
+            
+            window.currentBorrowItemId = id;
+            document.getElementById('borrow-item-name').innerText = item.name;
+            document.getElementById('borrow-item-max').innerText = item.remaining;
+            document.getElementById('borrow-img-preview').src = item.image || "https://placehold.co/100";
+            document.getElementById('borrow-qty').max = item.remaining;
+            document.getElementById('borrow-qty').value = 1;
+            
+            document.getElementById('borrow-modal').classList.remove('hidden');
+        };
+
+        window.confirmBorrow = async () => {
+            const qty = parseInt(document.getElementById('borrow-qty').value);
+            const itemId = window.currentBorrowItemId;
+            const btn = document.getElementById('btn-confirm-borrow');
+            
+            btn.disabled = true;
+            btn.innerText = '...';
 
             try {
-              const finalPayload = {
-                action: "saveData",
-                inventory: inventoryData,
-                logs: transactionLogs,
-                ...payload,
-              };
+                await runTransaction(db, async (transaction) => {
+                    const itemRef = doc(db, "inventory", itemId);
+                    const itemDoc = await transaction.get(itemRef);
+                    if (!itemDoc.exists()) throw "Item does not exist!";
+                    
+                    const currentRemaining = itemDoc.data().remaining;
+                    if (currentRemaining < qty) throw "ของหมดแล้ว!";
 
-              const response = await fetch(APP_CONFIG.googleScriptUrl, {
-                method: "POST",
-                redirect: "follow",
-                headers: { "Content-Type": "text/plain;charset=utf-8" },
-                body: JSON.stringify(finalPayload),
-              });
-              const res = await response.json();
-              if (res.status !== "success") throw new Error(res.message);
+                    transaction.update(itemRef, { remaining: currentRemaining - qty });
+                    
+                    const newLogRef = doc(collection(db, "logs"));
+                    transaction.set(newLogRef, {
+                        itemId: itemId,
+                        itemName: itemDoc.data().name,
+                        borrowerName: window.currentUser.name,
+                        empId: window.currentUser.empId,
+                        borrowDate: new Date().toISOString(),
+                        status: 'borrowed',
+                        qty: qty,
+                        returnDate: null
+                    });
+                });
 
-              // Update timestamp again on success to delay next sync further
-              lastUserActionTime = Date.now();
-              return true;
-            } catch (err) {
-              console.error("Save Error:", err);
-              Swal.fire("บันทึกไม่สำเร็จ", "กรุณาลองใหม่", "error");
-              return false;
+                closeModal('borrow-modal');
+                Swal.fire({ icon: 'success', title: 'ยืมสำเร็จ', timer: 1500, showConfirmButton: false });
+
+            } catch (e) {
+                Swal.fire('เกิดข้อผิดพลาด', e.toString(), 'error');
             } finally {
-              isSaving = false;
-              if (showLoading) toggleLoading(false);
-              else toggleSaving(false);
+                btn.disabled = false;
+                btn.innerText = 'ยืนยัน';
             }
-          });
-
-          return saveQueue;
-        },
-      };
-
-      // --- REALTIME SYNC ---
-      function startAutoSync() {
-        if (syncInterval) clearInterval(syncInterval);
-        syncInterval = setInterval(() => {
-          const isHidden = document.hidden;
-          // Double check guard conditions (redundant but safe)
-          const isUserActive = Date.now() - lastUserActionTime < 15000;
-
-          if (!isHidden && !isSaving && !isUserActive) {
-            DataService.loadData(true);
-          }
-        }, 10000); // 10 วินาที
-      }
-
-      // --- AUTH ---
-      function checkAdminStatus(empId) {
-        if (!adminList || adminList.length === 0) return empId == "9999";
-        return adminList.some((admin) => admin.empId == empId);
-      }
-
-      async function initAuth() {
-        await DataService.loadData();
-        const stored = localStorage.getItem(APP_CONFIG.storageKeys.user);
-        if (stored) {
-          const userObj = JSON.parse(stored);
-          userObj.isAdmin = checkAdminStatus(userObj.empId);
-          loginUser(userObj);
-        } else {
-          document.getElementById("login-screen").classList.remove("hidden");
-          document.getElementById("app-screen").classList.add("hidden");
-        }
-      }
-
-      document.getElementById("login-form").addEventListener("submit", (e) => {
-        e.preventDefault();
-        const user = {
-          name: document.getElementById("login-name").value,
-          empId: document.getElementById("login-id").value,
         };
-        user.isAdmin = checkAdminStatus(user.empId);
-        localStorage.setItem(APP_CONFIG.storageKeys.user, JSON.stringify(user));
-        loginUser(user);
-      });
 
-      function loginUser(user) {
-        currentUser = user;
-        document.getElementById("user-display-name").innerText = user.name;
-        document.getElementById("user-display-role").innerText = user.isAdmin
-          ? "ผู้ดูแลระบบ (Admin)"
-          : "พนักงาน (User)";
-        document.getElementById("mobile-user-name").innerText = user.name;
-        document.getElementById("mobile-user-role").innerText = user.isAdmin
-          ? "Admin"
-          : "User";
+        window.requestReturn = async (logId) => {
+            const result = await Swal.fire({
+                title: 'ยืนยันการคืน?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'ยืนยัน'
+            });
 
-        // Show/Hide Admin Tabs
-        const adminTab = document.getElementById("tab-admin");
-        const verifyTab = document.getElementById("tab-verify");
+            if (result.isConfirmed) {
+                try {
+                    await updateDoc(doc(db, "logs", logId), { status: 'pending_return' });
+                } catch (e) { console.error(e); }
+            }
+        };
 
-        if (user.isAdmin) {
-          adminTab.classList.remove("hidden");
-          verifyTab.classList.remove("hidden");
-        } else {
-          adminTab.classList.add("hidden");
-          verifyTab.classList.add("hidden");
-        }
+        window.returnAllItems = async () => {
+            const result = await Swal.fire({
+                title: 'คืนทั้งหมด?',
+                text: 'ยืนยันการคืนอุปกรณ์ทั้งหมดที่ยืมอยู่',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                confirmButtonText: 'ยืนยัน'
+            });
 
-        document.getElementById("login-screen").classList.add("hidden");
-        document.getElementById("app-screen").classList.remove("hidden");
+            if(result.isConfirmed) {
+                // Batch write for atomicity
+                const batch = writeBatch(db);
+                let count = 0;
+                window.transactionLogs.forEach(log => {
+                    if(log.empId == window.currentUser.empId && log.status === 'borrowed') {
+                        const logRef = doc(db, "logs", log.id);
+                        batch.update(logRef, { status: 'pending_return' });
+                        count++;
+                    }
+                });
+                
+                if(count > 0) {
+                    await batch.commit();
+                    Swal.fire({ icon: 'success', title: 'แจ้งคืนเรียบร้อย', timer: 1500, showConfirmButton: false });
+                }
+            }
+        };
 
-        startAutoSync();
-        switchTab("inventory");
-        refreshUI();
-      }
+        window.adminConfirmReturn = async (logId) => {
+            try {
+                await runTransaction(db, async (transaction) => {
+                    const logRef = doc(db, "logs", logId);
+                    const logDoc = await transaction.get(logRef);
+                    if (!logDoc.exists()) throw "Log not found";
+                    
+                    const logData = logDoc.data();
+                    const itemRef = doc(db, "inventory", logData.itemId);
+                    const itemDoc = await transaction.get(itemRef);
 
-      function logout() {
-        if (syncInterval) clearInterval(syncInterval);
-        localStorage.removeItem(APP_CONFIG.storageKeys.user);
-        location.reload();
-      }
+                    transaction.update(logRef, { 
+                        status: 'returned',
+                        returnDate: new Date().toISOString()
+                    });
 
-      function refreshUI() {
-        populateCategories();
-        renderInventory();
-        renderMyItems();
-        if (currentUser.isAdmin) {
-          renderVerify();
-          renderAdminTable();
-        }
-        renderHistory();
-      }
+                    if (itemDoc.exists()) {
+                        const newRemaining = (itemDoc.data().remaining || 0) + logData.qty;
+                        transaction.update(itemRef, { remaining: newRemaining });
+                    }
+                });
+            } catch (e) {
+                Swal.fire('Error', e.toString(), 'error');
+            }
+        };
 
-      // --- TABS & CATEGORIES ---
-      function switchTab(tab) {
-        document.querySelectorAll(".tab-btn").forEach((b) => {
-          b.classList.remove(
-            "active-tab",
-            "bg-primary-50",
-            "text-primary-600",
-            "dark:bg-primary-900/30",
-            "dark:text-primary-400",
-            "bg-yellow-50",
-            "text-yellow-600",
-            "dark:text-yellow-400",
-          );
-          b.classList.add("text-gray-500", "dark:text-gray-400");
+        window.verifyAllReturns = async () => {
+            // Note: Transactions in loop is not ideal, but for small batch acceptable.
+            // Or use batch write if stock update wasn't dependent on read.
+            // Since we need to read stock to update it, better to do one-by-one or simpler logic.
+            // Here we iterate one by one for safety.
+            const pending = window.transactionLogs.filter(l => l.status === 'pending_return');
+            for (const log of pending) {
+                await window.adminConfirmReturn(log.id);
+            }
+            Swal.fire({ icon: 'success', title: 'รับคืนทั้งหมดเรียบร้อย', timer: 1500, showConfirmButton: false });
+        };
+
+        // Admin: Add/Edit Item
+        document.getElementById('item-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('item-id').value;
+            const name = document.getElementById('item-name').value;
+            const category = document.getElementById('item-category').value;
+            const stock = parseInt(document.getElementById('item-stock').value);
+            
+            // Get Image value based on selected source
+            const sourceType = document.querySelector('input[name="img-source"]:checked').value;
+            let image = "";
+            if (sourceType === 'file') {
+                image = document.getElementById('item-image').value;
+            } else {
+                image = document.getElementById('item-image-url').value;
+            }
+            if(!image) image = "https://placehold.co/300x200?text=No+Image";
+
+            const itemData = { name, category, stock, image };
+
+            try {
+                if (id) {
+                    // Edit logic: Try to preserve remaining count relative to stock change
+                    const oldItem = window.inventoryData.find(i => i.id == id);
+                    const borrowed = oldItem.stock - oldItem.remaining;
+                    itemData.remaining = stock - borrowed;
+                    await updateDoc(doc(db, "inventory", id), itemData);
+                } else {
+                    itemData.remaining = stock;
+                    await addDoc(collection(db, "inventory"), itemData);
+                }
+                closeModal('item-modal');
+                Swal.fire({ icon: 'success', title: 'บันทึกสำเร็จ', timer: 1500, showConfirmButton: false });
+            } catch (e) { console.error(e); }
         });
 
-        const btn = document.getElementById(`tab-${tab}`);
+        // --- Image Source Toggle Logic ---
+        window.toggleImageSource = (type) => {
+            const fileInput = document.getElementById('input-type-file');
+            const urlInput = document.getElementById('input-type-url');
+            
+            if (type === 'file') {
+                fileInput.classList.remove('hidden');
+                urlInput.classList.add('hidden');
+            } else {
+                fileInput.classList.add('hidden');
+                urlInput.classList.remove('hidden');
+            }
+        };
 
-        // Special styling for verify tab
-        if (tab === "verify") {
-          btn.classList.add(
-            "active-tab",
-            "bg-yellow-50",
-            "text-yellow-600",
-            "dark:bg-yellow-900/30",
-            "dark:text-yellow-400",
-          );
-        } else {
-          btn.classList.add(
-            "active-tab",
-            "bg-primary-50",
-            "text-primary-600",
-            "dark:bg-primary-900/30",
-            "dark:text-primary-400",
-          );
-        }
-
-        btn.classList.remove("text-gray-500", "dark:text-gray-400");
-
-        ["inventory", "my-items", "verify", "history", "admin"].forEach((v) => {
-          document
-            .getElementById(`view-${v}`)
-            .classList.toggle("hidden", v !== tab);
+        // Preview URL Image on Input
+        document.getElementById('item-image-url').addEventListener('input', (e) => {
+            const url = e.target.value;
+            if(url) {
+                document.getElementById('item-image-preview').src = url;
+            }
         });
 
-        // Specific Render trigger
-        if (tab === "verify") renderVerify();
-      }
+        // --- NEW: Added openAddModal implementation ---
+        window.openAddModal = () => {
+            document.getElementById('item-modal-title').innerText = "เพิ่มอุปกรณ์ใหม่";
+            document.getElementById('item-form').reset();
+            document.getElementById('item-id').value = "";
+            document.getElementById('item-image').value = "";
+            document.getElementById('item-image-preview').src = "https://placehold.co/100?text=Preview";
+            document.getElementById('item-image-file').value = ""; 
+            
+            // Reset to File Upload default
+            document.querySelector('input[name="img-source"][value="file"]').checked = true;
+            window.toggleImageSource('file');
 
-      function populateCategories() {
-        // Filter Dropdown
-        const filterSelect = document.getElementById("filter-category");
-        const currentVal = filterSelect.value;
-        filterSelect.innerHTML = '<option value="">ทุกหมวดหมู่</option>';
+            document.getElementById('item-modal').classList.remove('hidden');
+        };
 
-        // Datalist in Admin
-        const datalist = document.getElementById("category-list");
-        datalist.innerHTML = "";
+        window.editItem = (id) => {
+            const item = window.inventoryData.find(i => i.id == id);
+            document.getElementById('item-modal-title').innerText = "แก้ไขอุปกรณ์";
+            document.getElementById('item-id').value = id;
+            document.getElementById('item-name').value = item.name;
+            document.getElementById('item-category').value = item.category;
+            document.getElementById('item-stock').value = item.stock;
+            
+            // Determine image source type
+            const isUrl = item.image && item.image.startsWith('http');
+            if (isUrl) {
+                document.querySelector('input[name="img-source"][value="url"]').checked = true;
+                window.toggleImageSource('url');
+                document.getElementById('item-image-url').value = item.image;
+            } else {
+                document.querySelector('input[name="img-source"][value="file"]').checked = true;
+                window.toggleImageSource('file');
+                document.getElementById('item-image').value = item.image;
+            }
+            
+            document.getElementById('item-image-preview').src = item.image || "https://placehold.co/100?text=No+Image";
+            document.getElementById('item-modal').classList.remove('hidden');
+        };
 
-        // Unique categories from Inventory Data ONLY (ไม่ใช้ categoryList ที่โหลดมาแล้ว)
-        const allCats = new Set(
-          inventoryData
-            .map((i) => i.category)
-            .filter((c) => c && c.trim() !== ""),
-        );
+        window.deleteItem = async (id) => {
+            const result = await Swal.fire({
+                title: 'ลบรายการ?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                confirmButtonText: 'ลบ'
+            });
+            if(result.isConfirmed) {
+                await deleteDoc(doc(db, "inventory", id));
+            }
+        };
 
-        allCats.forEach((c) => {
-          // Filter Option
-          const opt = document.createElement("option");
-          opt.value = c;
-          opt.innerText = c;
-          filterSelect.appendChild(opt);
+        // --- RENDER HELPERS ---
+        function renderInventory() {
+            const grid = document.getElementById('inventory-grid');
+            const search = document.getElementById('search-inventory').value.toLowerCase();
+            const catFilter = document.getElementById('filter-category').value;
+            grid.innerHTML = '';
 
-          // Datalist Option
-          const dataOpt = document.createElement("option");
-          dataOpt.value = c;
-          datalist.appendChild(dataOpt);
-        });
+            const items = window.inventoryData.filter(i => {
+                const matchName = i.name.toLowerCase().includes(search);
+                const matchCat = catFilter ? i.category === catFilter : true;
+                return matchName && matchCat;
+            });
 
-        filterSelect.value = currentVal;
-      }
-
-      // --- INVENTORY VIEW ---
-      function getRemainingStock(item) {
-        // เช็คว่ามี column remaining จาก DB หรือไม่ ถ้ามีให้ใช้ ถ้าไม่มีให้คำนวณเอง
-        if (
-          item.remaining !== undefined &&
-          item.remaining !== null &&
-          item.remaining !== ""
-        ) {
-          return parseInt(item.remaining);
-        }
-
-        const active = getActiveBorrows(item.id);
-        return item.stock - active;
-      }
-
-      function getActiveBorrows(itemId) {
-        // Include both 'borrowed' and 'pending_return' as they are not yet back in stock
-        return transactionLogs
-          .filter(
-            (l) =>
-              l.itemId == itemId &&
-              (l.status === "borrowed" || l.status === "pending_return"),
-          )
-          .reduce((sum, l) => sum + parseInt(l.qty), 0);
-      }
-
-      function renderInventory() {
-        const grid = document.getElementById("inventory-grid");
-        const search = document
-          .getElementById("search-inventory")
-          .value.toLowerCase();
-        const catFilter = document.getElementById("filter-category").value;
-        grid.innerHTML = "";
-
-        const items = inventoryData.filter((i) => {
-          const matchText =
-            i.name.toLowerCase().includes(search) ||
-            (i.category && i.category.toLowerCase().includes(search));
-          const matchCat = catFilter ? i.category === catFilter : true;
-          return matchText && matchCat;
-        });
-
-        if (items.length === 0) {
-          grid.innerHTML = `<div class="col-span-full text-center py-10 text-gray-400"><i class="fas fa-search mb-2 text-2xl"></i><br>ไม่พบอุปกรณ์</div>`;
-          return;
-        }
-
-        items.forEach((item) => {
-          const remaining = getRemainingStock(item);
-          const isOut = remaining <= 0;
-
-          grid.innerHTML += `
-                    <div class="bg-white dark:bg-dark-card rounded-2xl shadow-sm hover:shadow-md transition duration-300 overflow-hidden border border-gray-100 dark:border-gray-700 flex flex-col h-full group">
+            items.forEach(item => {
+                const isOut = item.remaining <= 0;
+                grid.innerHTML += `
+                    <div class="bg-white dark:bg-dark-card rounded-2xl shadow-sm hover:shadow-md transition border border-gray-100 dark:border-gray-700 flex flex-col h-full group overflow-hidden">
                         <div class="h-40 overflow-hidden relative bg-gray-100 dark:bg-gray-800">
-                            <img src="${item.image}" onerror="this.src='https://placehold.co/300?text=No+Image'" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
-                            <span class="absolute top-2 right-2 px-2 py-1 text-xs font-bold rounded-full ${isOut ? "bg-red-500 text-white" : "bg-green-500 text-white"} shadow-sm">
-                                ${isOut ? "หมด" : `ว่าง ${remaining}`}
+                            <img src="${item.image}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                            <span class="absolute top-2 right-2 px-2 py-1 text-xs font-bold rounded-full ${isOut ? 'bg-red-500 text-white' : 'bg-green-500 text-white'} shadow-sm">
+                                ${isOut ? 'หมด' : `ว่าง ${item.remaining}`}
                             </span>
                         </div>
                         <div class="p-4 flex flex-col flex-1">
-                            <div class="text-xs text-gray-400 mb-1">${item.category || "ทั่วไป"}</div>
+                            <div class="text-xs text-gray-400 mb-1">${item.category || 'ทั่วไป'}</div>
                             <h3 class="font-bold text-gray-800 dark:text-gray-100 text-lg mb-1 leading-snug line-clamp-2">${item.name}</h3>
                             <div class="flex-1"></div>
-                            <button onclick="openBorrowModal(${item.id})" ${isOut ? "disabled" : ""} 
+                            <button onclick="openBorrowModal('${item.id}')" ${isOut ? 'disabled' : ''} 
                                 class="mt-4 w-full py-2.5 rounded-xl font-medium transition flex items-center justify-center gap-2
-                                ${isOut ? "bg-gray-100 text-gray-400 dark:bg-gray-700 dark:text-gray-500 cursor-not-allowed" : "bg-primary-600 text-white hover:bg-primary-700 active:scale-95 shadow-lg shadow-primary-500/20"}">
-                                ${isOut ? "ของหมดชั่วคราว" : '<i class="fas fa-hand-holding-hand"></i> ยืมรายการนี้'}
+                                ${isOut ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-primary-600 text-white hover:bg-primary-700 shadow-lg'}">
+                                ${isOut ? 'ของหมด' : 'ยืมรายการนี้'}
                             </button>
                         </div>
                     </div>
                 `;
-        });
-      }
-
-      document
-        .getElementById("search-inventory")
-        .addEventListener("input", renderInventory);
-      document
-        .getElementById("filter-category")
-        .addEventListener("change", renderInventory);
-
-      // --- BORROW LOGIC ---
-      function openBorrowModal(id) {
-        // Re-check stock in realtime-ish way (from local synced data)
-        const item = inventoryData.find((i) => i.id == id);
-        const remaining = getRemainingStock(item);
-
-        if (remaining <= 0) {
-          Swal.fire("ขออภัย", "สินค้าเพิ่งหมดพอดี", "warning");
-          refreshUI(); // Sync UI
-          return;
-        }
-
-        currentBorrowItemId = id;
-        document.getElementById("borrow-item-name").innerText = item.name;
-        document.getElementById("borrow-item-max").innerText = remaining;
-        document.getElementById("borrow-img-preview").src = item.image;
-
-        const qtyInput = document.getElementById("borrow-qty");
-        qtyInput.max = remaining;
-        qtyInput.value = 1;
-
-        // Reset Button State
-        const btn = document.getElementById("btn-confirm-borrow");
-        btn.disabled = false;
-        btn.innerHTML = "ยืนยันการยืม";
-
-        document.getElementById("borrow-modal").classList.remove("hidden");
-      }
-
-      function adjustQty(n) {
-        const el = document.getElementById("borrow-qty");
-        let v = parseInt(el.value) + n;
-        if (v < 1) v = 1;
-        if (v > parseInt(el.max)) v = parseInt(el.max);
-        el.value = v;
-      }
-
-      async function confirmBorrow() {
-        const confirmBtn = document.getElementById("btn-confirm-borrow");
-        const originalText = confirmBtn.innerText;
-        confirmBtn.disabled = true;
-        confirmBtn.innerHTML =
-          '<i class="fas fa-circle-notch fa-spin"></i> กำลังบันทึก...';
-
-        try {
-          const qty = parseInt(document.getElementById("borrow-qty").value);
-
-          // IMPORTANT: Removed explict loadData here to be "Instant"
-          // Rely on local check. If fails on server later, user will see in history (or we can implement sophisticated rollback, but for now simple queue is enough)
-          lastUserActionTime = Date.now(); // Mark action start
-
-          const itemIndex = inventoryData.findIndex(
-            (i) => i.id == currentBorrowItemId,
-          );
-          if (itemIndex === -1) throw new Error("Item not found");
-          const item = inventoryData[itemIndex];
-
-          const currentRemaining = getRemainingStock(item);
-
-          if (qty > currentRemaining) {
-            confirmBtn.disabled = false;
-            confirmBtn.innerText = originalText;
-            closeModal("borrow-modal");
-            Swal.fire("ขออภัย", "สินค้าไม่พอ (มีการยืมตัดหน้า)", "error");
-            refreshUI();
-            return;
-          }
-
-          const newLog = {
-            id: Date.now(),
-            itemId: item.id,
-            itemName: item.name,
-            borrowerName: currentUser.name,
-            empId: currentUser.empId,
-            borrowDate: new Date().toISOString(),
-            returnDate: null,
-            status: "borrowed",
-            qty: qty,
-          };
-
-          transactionLogs.unshift(newLog);
-          inventoryData[itemIndex].remaining = currentRemaining - qty;
-
-          // Optimistic UI
-          refreshUI();
-          closeModal("borrow-modal");
-          confirmBtn.disabled = false;
-          confirmBtn.innerText = originalText;
-
-          Swal.fire({
-            icon: "success",
-            title: "ยืมสำเร็จ",
-            text: `คุณได้ยืม ${item.name} จำนวน ${qty} ชิ้น`,
-            timer: 2000,
-            showConfirmButton: false,
-            position: "center",
-          });
-
-          // Background Queue Save
-          await DataService.saveData({}, false);
-        } catch (error) {
-          console.error(error);
-          confirmBtn.disabled = false;
-          confirmBtn.innerText = originalText;
-          Swal.fire("Error", "เกิดข้อผิดพลาดในการบันทึก", "error");
-        }
-      }
-
-      // --- MY ITEMS & RETURN FLOW ---
-      function renderMyItems() {
-        const activeList = document.getElementById("my-items-active-list");
-        const pendingList = document.getElementById("my-items-pending-list");
-
-        const activeEmpty = document.getElementById("my-items-active-empty");
-        const pendingEmpty = document.getElementById("my-items-pending-empty");
-        const allEmpty = document.getElementById("my-items-all-empty");
-
-        const badge = document.getElementById("my-items-badge");
-        const returnAllBtn = document.getElementById("btn-return-all");
-
-        activeList.innerHTML = "";
-        pendingList.innerHTML = "";
-
-        // ใช้ == แทน === เพื่อรองรับ string/number
-        const myLogs = transactionLogs.filter(
-          (l) => l.empId == currentUser.empId,
-        );
-        const activeItems = myLogs.filter((l) => l.status === "borrowed");
-        const pendingItems = myLogs.filter(
-          (l) => l.status === "pending_return",
-        );
-
-        // Badge & Return All Button Logic
-        const count = activeItems.length;
-        document.getElementById("my-active-count").innerText = count;
-        if (count > 0) {
-          badge.classList.remove("hidden");
-          badge.innerText = count;
-          returnAllBtn.classList.remove("hidden"); // Show Return All
-        } else {
-          badge.classList.add("hidden");
-          returnAllBtn.classList.add("hidden"); // Hide Return All
-        }
-
-        // Global Empty State
-        if (activeItems.length === 0 && pendingItems.length === 0) {
-          allEmpty.classList.remove("hidden");
-          activeEmpty.classList.add("hidden");
-          pendingEmpty.classList.add("hidden");
-
-          document
-            .getElementById("my-items-active-list")
-            .parentElement.classList.add("hidden");
-          document
-            .getElementById("my-items-pending-list")
-            .parentElement.classList.add("hidden");
-          return;
-        } else {
-          allEmpty.classList.add("hidden");
-          document
-            .getElementById("my-items-active-list")
-            .parentElement.classList.remove("hidden");
-          document
-            .getElementById("my-items-pending-list")
-            .parentElement.classList.remove("hidden");
-        }
-
-        // ACTIVE ITEMS
-        if (activeItems.length === 0) {
-          activeEmpty.classList.remove("hidden");
-          activeList.classList.add("hidden");
-        } else {
-          activeEmpty.classList.add("hidden");
-          activeList.classList.remove("hidden");
-
-          activeItems.forEach((log) => {
-            const itemDef = inventoryData.find((i) => i.id == log.itemId) || {};
-            const img = itemDef.image || "https://placehold.co/100";
-            const date = new Date(log.borrowDate).toLocaleDateString("th-TH", {
-              day: "numeric",
-              month: "short",
-              hour: "2-digit",
-              minute: "2-digit",
             });
-
-            activeList.innerHTML += `
-                        <div class="bg-white dark:bg-dark-card p-4 rounded-xl border-l-4 border-primary-500 shadow-sm flex items-center gap-4">
-                            <img src="${img}" class="w-16 h-16 rounded-lg object-cover bg-gray-100">
-                            <div class="flex-1 min-w-0">
-                                <h4 class="font-bold text-gray-900 dark:text-white truncate">${log.itemName}</h4>
-                                <div class="text-xs text-gray-500 mt-1">
-                                    <i class="far fa-clock"></i> ยืม: ${date}
-                                </div>
-                                <div class="mt-2 flex items-center gap-2">
-                                    <span class="bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded-md font-bold">จำนวน ${log.qty}</span>
-                                </div>
-                            </div>
-                            <button onclick="requestReturn(${log.id})" class="bg-green-500 hover:bg-green-600 text-white w-12 h-12 rounded-full shadow-lg flex flex-col items-center justify-center transition transform active:scale-90">
-                                <i class="fas fa-undo-alt text-lg"></i>
-                                <span class="text-[9px] font-bold">คืน</span>
-                            </button>
-                        </div>
-                    `;
-          });
         }
 
-        // PENDING ITEMS
-        if (pendingItems.length === 0) {
-          pendingEmpty.classList.remove("hidden");
-          pendingList.classList.add("hidden");
-        } else {
-          pendingEmpty.classList.add("hidden");
-          pendingList.classList.remove("hidden");
+        function renderMyItems() {
+            const activeList = document.getElementById('my-items-active-list');
+            const pendingList = document.getElementById('my-items-pending-list');
+            const badge = document.getElementById('my-items-badge');
+            const returnAllBtn = document.getElementById('btn-return-all');
+            
+            activeList.innerHTML = ''; pendingList.innerHTML = '';
+            
+            const myLogs = window.transactionLogs.filter(l => l.empId == window.currentUser.empId);
+            const active = myLogs.filter(l => l.status === 'borrowed');
+            const pending = myLogs.filter(l => l.status === 'pending_return');
 
-          pendingItems.forEach((log) => {
-            const itemDef = inventoryData.find((i) => i.id == log.itemId) || {};
-            const img = itemDef.image || "https://placehold.co/100";
-            const date = new Date(log.borrowDate).toLocaleDateString("th-TH", {
-              day: "numeric",
-              month: "short",
-            });
+            document.getElementById('my-items-active-empty').classList.toggle('hidden', active.length > 0);
+            document.getElementById('my-items-pending-empty').classList.toggle('hidden', pending.length > 0);
 
-            pendingList.innerHTML += `
-                         <div class="bg-white dark:bg-dark-card p-4 rounded-xl border-l-4 border-yellow-500 shadow-sm flex items-center gap-4 opacity-75">
-                            <img src="${img}" class="w-16 h-16 rounded-lg object-cover bg-gray-100 grayscale">
-                            <div class="flex-1 min-w-0">
-                                <h4 class="font-bold text-gray-900 dark:text-white truncate">${log.itemName}</h4>
-                                <div class="text-xs text-gray-500 mt-1">
-                                    <i class="fas fa-hourglass-half"></i> รอ Admin ยืนยัน
-                                </div>
-                                <div class="mt-2">
-                                    <span class="bg-yellow-100 text-yellow-800 text-xs px-2 py-0.5 rounded-md font-bold">คืน ${log.qty} ชิ้น</span>
-                                </div>
-                            </div>
-                            <!-- No Return Button Here -->
-                            <div class="text-yellow-500 text-2xl px-2">
-                                <i class="fas fa-check-circle"></i>
-                            </div>
-                        </div>
-                    `;
-          });
-        }
-      }
-
-      async function requestReturn(logId) {
-        Swal.fire({
-          title: "ยืนยันการคืน?",
-          text: "แจ้งคืนอุปกรณ์นี้ (รอ Admin ตรวจสอบ)",
-          icon: "warning",
-          showCancelButton: true,
-          confirmButtonColor: "#22c55e",
-          confirmButtonText: "ยืนยันคืนของ",
-        }).then(async (res) => {
-          if (res.isConfirmed) {
-            lastUserActionTime = Date.now(); // Mark action
-
-            const idx = transactionLogs.findIndex((l) => l.id == logId);
-            if (idx > -1) {
-              transactionLogs[idx].status = "pending_return";
-              renderMyItems();
-              refreshUI();
-
-              Swal.fire({
-                icon: "success",
-                title: "แจ้งคืนเรียบร้อย",
-                text: "กรุณารอเจ้าหน้าที่ตรวจสอบความถูกต้อง",
-                showConfirmButton: false,
-                timer: 2000,
-                position: "center",
-              });
-
-              await DataService.saveData({}, false);
+            if(active.length > 0) {
+                badge.classList.remove('hidden'); badge.innerText = active.length;
+                returnAllBtn.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden'); returnAllBtn.classList.add('hidden');
             }
-          }
-        });
-      }
 
-      // New Function: Return All Items
-      function returnAllItems() {
-        Swal.fire({
-          title: "คืนทั้งหมด?",
-          text: "ต้องการแจ้งคืนอุปกรณ์ที่ยืมอยู่ทั้งหมดใช่ไหม?",
-          icon: "warning",
-          showCancelButton: true,
-          confirmButtonColor: "#ef4444",
-          confirmButtonText: "ยืนยันคืนทั้งหมด",
-        }).then(async (res) => {
-          if (res.isConfirmed) {
-            lastUserActionTime = Date.now(); // Mark action
+            const createCard = (log, isActive) => {
+                const item = window.inventoryData.find(i => i.id == log.itemId) || {};
+                const date = new Date(log.borrowDate).toLocaleDateString('th-TH');
+                const btn = isActive ? 
+                    `<button onclick="requestReturn('${log.id}')" class="bg-green-500 hover:bg-green-600 text-white w-10 h-10 rounded-full flex items-center justify-center shadow"><i class="fas fa-undo"></i></button>` : 
+                    `<div class="text-yellow-500 text-xl"><i class="fas fa-clock"></i></div>`;
+                return `
+                    <div class="bg-white dark:bg-dark-card p-4 rounded-xl border-l-4 ${isActive?'border-primary-500':'border-yellow-500'} shadow-sm flex items-center gap-4">
+                        <img src="${item.image || 'https://placehold.co/100'}" class="w-16 h-16 rounded-lg object-cover bg-gray-100">
+                        <div class="flex-1 min-w-0">
+                            <h4 class="font-bold text-gray-900 dark:text-white truncate">${log.itemName}</h4>
+                            <div class="text-xs text-gray-500 mt-1">ยืม: ${date}</div>
+                            <div class="mt-2"><span class="bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded-md font-bold">จำนวน ${log.qty}</span></div>
+                        </div>
+                        ${btn}
+                    </div>`;
+            };
 
-            let changed = false;
-            // Filter user's active borrows
-            transactionLogs.forEach((log) => {
-              if (log.empId == currentUser.empId && log.status === "borrowed") {
-                log.status = "pending_return";
-                changed = true;
-              }
-            });
+            active.forEach(l => activeList.innerHTML += createCard(l, true));
+            pending.forEach(l => pendingList.innerHTML += createCard(l, false));
+        }
 
-            if (changed) {
-              renderMyItems();
-              refreshUI();
-
-              Swal.fire({
-                icon: "success",
-                title: "แจ้งคืนทั้งหมดเรียบร้อย",
-                text: "รายการทั้งหมดอยู่ในสถานะรอตรวจสอบ",
-                showConfirmButton: false,
-                timer: 2000,
-                position: "center",
-              });
-
-              await DataService.saveData({}, false);
+        function renderVerify() {
+            const list = document.getElementById('verify-list');
+            const badge = document.getElementById('verify-badge');
+            const verifyAllBtn = document.getElementById('btn-verify-all');
+            
+            list.innerHTML = '';
+            const pending = window.transactionLogs.filter(l => l.status === 'pending_return');
+            
+            if(pending.length > 0) {
+                badge.classList.remove('hidden'); badge.innerText = pending.length;
+                verifyAllBtn.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden'); verifyAllBtn.classList.add('hidden');
             }
-          }
-        });
-      }
+            document.getElementById('verify-empty').classList.toggle('hidden', pending.length > 0);
 
-      // --- VERIFY VIEW (ADMIN CONFIRM) ---
-      function renderVerify() {
-        const list = document.getElementById("verify-list");
-        const empty = document.getElementById("verify-empty");
-        const badge = document.getElementById("verify-badge");
-        const verifyAllBtn = document.getElementById("btn-verify-all");
-
-        list.innerHTML = "";
-
-        const pendingReturns = transactionLogs.filter(
-          (l) => l.status === "pending_return",
-        );
-
-        // Badge for Admin Tab
-        if (pendingReturns.length > 0) {
-          badge.classList.remove("hidden");
-          badge.innerText = pendingReturns.length;
-          verifyAllBtn.classList.remove("hidden");
-        } else {
-          badge.classList.add("hidden");
-          verifyAllBtn.classList.add("hidden");
-        }
-
-        if (pendingReturns.length === 0) {
-          empty.classList.remove("hidden");
-          list.classList.add("hidden");
-          return;
-        }
-
-        empty.classList.add("hidden");
-        list.classList.remove("hidden");
-
-        pendingReturns.forEach((log) => {
-          const itemDef = inventoryData.find((i) => i.id == log.itemId) || {};
-          const img = itemDef.image || "https://placehold.co/100";
-          const date = new Date(log.borrowDate).toLocaleDateString("th-TH");
-
-          list.innerHTML += `
-                    <div class="bg-white dark:bg-dark-card rounded-xl shadow-md overflow-hidden border border-yellow-200 dark:border-yellow-900/30">
+            pending.forEach(log => {
+                const item = window.inventoryData.find(i => i.id == log.itemId) || {};
+                list.innerHTML += `
+                    <div class="bg-white dark:bg-dark-card rounded-xl shadow-md overflow-hidden border border-yellow-200">
                         <div class="flex p-4 gap-4">
-                            <img src="${img}" class="w-20 h-20 rounded-lg object-cover bg-gray-100">
-                            <div class="flex-1 min-w-0">
-                                <div class="flex justify-between items-start">
-                                    <h4 class="font-bold text-gray-900 dark:text-white truncate">${log.itemName}</h4>
-                                    <span class="bg-yellow-100 text-yellow-800 text-[10px] px-1.5 py-0.5 rounded font-bold">รอตรวจ</span>
-                                </div>
-                                <div class="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                                    <i class="fas fa-user-circle"></i> ${log.borrowerName} (${log.empId})
-                                </div>
-                                <div class="text-xs text-gray-400 mt-1">ยืมเมื่อ: ${date} • จำนวน: <b>${log.qty}</b></div>
+                            <img src="${item.image || 'https://placehold.co/100'}" class="w-20 h-20 rounded-lg object-cover">
+                            <div class="flex-1">
+                                <h4 class="font-bold dark:text-white">${log.itemName}</h4>
+                                <div class="text-sm text-gray-500">${log.borrowerName} (${log.empId})</div>
+                                <div class="text-xs text-gray-400 mt-1">จำนวน: ${log.qty}</div>
                             </div>
                         </div>
-                        <div class="bg-gray-50 dark:bg-gray-800/50 p-3 border-t border-gray-100 dark:border-gray-700 flex justify-end gap-3">
-                             <button onclick="adminConfirmReturn(${log.id})" class="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg text-sm font-bold shadow-sm transition flex items-center justify-center gap-2">
-                                <i class="fas fa-check-double"></i> ยืนยันรับคืน
-                            </button>
+                        <div class="bg-gray-50 dark:bg-gray-800 p-3 flex justify-end">
+                            <button onclick="adminConfirmReturn('${log.id}')" class="bg-green-600 text-white px-4 py-1.5 rounded-lg text-sm flex items-center gap-2"><i class="fas fa-check"></i> รับคืน</button>
                         </div>
                     </div>
                 `;
-        });
-      }
-
-      async function adminConfirmReturn(logId) {
-        // Check if queue logic needed (already handled by background save mechanism)
-        // But UI should be instant
-        lastUserActionTime = Date.now();
-
-        const idx = transactionLogs.findIndex((l) => l.id == logId);
-        if (idx > -1) {
-          // Optimistic Update
-          const log = transactionLogs[idx];
-          transactionLogs[idx].status = "returned";
-          transactionLogs[idx].returnDate = new Date().toISOString();
-
-          const itemIndex = inventoryData.findIndex((i) => i.id == log.itemId);
-          if (itemIndex > -1) {
-            const item = inventoryData[itemIndex];
-            const currentRemaining = getRemainingStock(item);
-            inventoryData[itemIndex].remaining =
-              currentRemaining + parseInt(log.qty);
-          }
-
-          refreshUI();
-
-          const Toast = Swal.mixin({
-            toast: true,
-            position: "top-end",
-            showConfirmButton: false,
-            timer: 2000,
-          });
-          Toast.fire({ icon: "success", title: "รับของคืนเรียบร้อย" });
-
-          // Background Save
-          await DataService.saveData({}, false);
-        }
-      }
-
-      function verifyAllReturns() {
-        Swal.fire({
-          title: "ยืนยันรับคืนทั้งหมด?",
-          text: "ตรวจสอบและรับคืนอุปกรณ์ทั้งหมดในรายการนี้",
-          icon: "warning",
-          showCancelButton: true,
-          confirmButtonColor: "#22c55e",
-          confirmButtonText: "ยืนยันทั้งหมด",
-        }).then(async (res) => {
-          if (res.isConfirmed) {
-            lastUserActionTime = Date.now();
-            let changed = false;
-
-            transactionLogs.forEach((log) => {
-              if (log.status === "pending_return") {
-                log.status = "returned";
-                log.returnDate = new Date().toISOString();
-
-                const itemIndex = inventoryData.findIndex(
-                  (i) => i.id == log.itemId,
-                );
-                if (itemIndex > -1) {
-                  const item = inventoryData[itemIndex];
-                  const currentRemaining = getRemainingStock(item);
-                  inventoryData[itemIndex].remaining =
-                    currentRemaining + parseInt(log.qty);
-                }
-                changed = true;
-              }
             });
-
-            if (changed) {
-              refreshUI();
-              Swal.fire({
-                icon: "success",
-                title: "รับคืนทั้งหมดเรียบร้อย",
-                showConfirmButton: false,
-                timer: 1500,
-                position: "center",
-              });
-              await DataService.saveData({}, false);
-            }
-          }
-        });
-      }
-
-      // --- HISTORY VIEW ---
-      function renderHistory() {
-        const tbody = document.getElementById("history-table-body");
-        const label = document.getElementById("history-filter-label");
-        tbody.innerHTML = "";
-
-        let logsToShow = transactionLogs;
-
-        // FIX: ใช้ == เพื่อให้รองรับ String vs Number (เช่น "1001" == 1001)
-        if (!currentUser.isAdmin) {
-          logsToShow = transactionLogs.filter(
-            (l) => l.empId == currentUser.empId,
-          );
-          label.innerText = "ประวัติของฉัน";
-        } else {
-          label.innerText = "รายการทั้งหมด (Admin Mode)";
         }
 
-        // Sort: Pending Return First, then Date
-        logsToShow.sort((a, b) => {
-          if (a.status === "pending_return" && b.status !== "pending_return")
-            return -1;
-          if (a.status !== "pending_return" && b.status === "pending_return")
-            return 1;
-          return new Date(b.borrowDate) - new Date(a.borrowDate);
-        });
+        function renderHistory() {
+            const tbody = document.getElementById('history-table-body');
+            tbody.innerHTML = '';
+            let logs = window.transactionLogs;
+            if(!window.currentUser.isAdmin) logs = logs.filter(l => l.empId == window.currentUser.empId);
+            logs.sort((a,b) => new Date(b.borrowDate) - new Date(a.borrowDate));
 
-        if (logsToShow.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-gray-400">ไม่พบประวัติการทำรายการ</td></tr>`;
-          return;
+            logs.forEach(log => {
+                const status = log.status === 'borrowed' ? '<span class="text-blue-500">กำลังยืม</span>' : log.status === 'pending_return' ? '<span class="text-yellow-500">รอคืน</span>' : '<span class="text-green-500">คืนแล้ว</span>';
+                tbody.innerHTML += `
+                    <tr class="bg-white dark:bg-dark-card border-b dark:border-gray-700">
+                        <td class="px-4 py-3">${new Date(log.borrowDate).toLocaleDateString('th-TH')}</td>
+                        <td class="px-4 py-3">${log.borrowerName}</td>
+                        <td class="px-4 py-3">${log.itemName}</td>
+                        <td class="px-4 py-3 text-center">${log.qty}</td>
+                        <td class="px-4 py-3 text-center">${status}</td>
+                        <td class="px-4 py-3 text-center">${log.returnDate ? new Date(log.returnDate).toLocaleDateString('th-TH') : '-'}</td>
+                    </tr>`;
+            });
         }
 
-        logsToShow.forEach((log) => {
-          const date = new Date(log.borrowDate).toLocaleDateString("th-TH");
-
-          let statusBadge = "";
-          let actionBtn = "";
-
-          if (log.status === "borrowed") {
-            statusBadge =
-              '<span class="px-2 py-1 bg-blue-100 text-blue-800 rounded-lg text-xs font-bold">กำลังยืม</span>';
-          } else if (log.status === "pending_return") {
-            statusBadge =
-              '<span class="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-lg text-xs font-bold animate-pulse">รอตรวจสอบ</span>';
-          } else if (log.status === "returned") {
-            statusBadge =
-              '<span class="px-2 py-1 bg-gray-100 text-gray-600 rounded-lg text-xs font-bold">คืนสำเร็จ</span>';
-          }
-
-          const returnDateStr = log.returnDate
-            ? new Date(log.returnDate).toLocaleDateString("th-TH")
-            : "-";
-
-          tbody.innerHTML += `
-                    <tr class="bg-white dark:bg-dark-card border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 ${log.status === "pending_return" ? "bg-yellow-50 dark:bg-yellow-900/10" : ""}">
-                        <td class="px-4 py-3">${date}</td>
-                        <td class="px-4 py-3">
-                            <div class="font-medium">${log.borrowerName}</div>
-                            <div class="text-xs text-gray-500">ID: ${log.empId}</div>
-                        </td>
-                        <td class="px-4 py-3 text-gray-600 dark:text-gray-400">${log.itemName}</td>
-                        <td class="px-4 py-3 text-center font-bold">${log.qty}</td>
-                        <td class="px-4 py-3 text-center">${statusBadge}</td>
-                        <td class="px-4 py-3 text-center">${returnDateStr}</td>
-                    </tr>
-                `;
-        });
-      }
-
-      // --- ADMIN VIEW ---
-      function renderAdminTable() {
-        const tbody = document.getElementById("admin-table-body");
-        tbody.innerHTML = "";
-
-        inventoryData.forEach((item) => {
-          const remaining = getRemainingStock(item);
-
-          tbody.innerHTML += `
+        function renderAdminTable() {
+            const tbody = document.getElementById('admin-table-body');
+            tbody.innerHTML = '';
+            window.inventoryData.forEach(item => {
+                tbody.innerHTML += `
                     <tr class="bg-white border-b dark:bg-dark-card dark:border-gray-700">
-                        <td class="px-4 py-3 text-center">
-                            <img src="${item.image}" class="w-10 h-10 rounded object-cover mx-auto bg-gray-100">
-                        </td>
-                        <td class="px-4 py-3 font-medium">${item.name}</td>
-                        <td class="px-4 py-3 hidden sm:table-cell text-gray-500">${item.category || "-"}</td>
-                        <td class="px-4 py-3 text-center">
-                            <span class="font-bold text-gray-900 dark:text-white">${remaining}</span>
-                            <span class="text-xs text-gray-400">/${item.stock}</span>
-                        </td>
+                        <td class="px-4 py-3 text-center"><img src="${item.image}" class="w-10 h-10 rounded object-cover mx-auto"></td>
+                        <td class="px-4 py-3">${item.name}</td>
+                        <td class="px-4 py-3">${item.category}</td>
+                        <td class="px-4 py-3 text-center">${item.remaining}/${item.stock}</td>
                         <td class="px-4 py-3 text-center space-x-2">
-                            <button onclick="editItem(${item.id})" class="text-primary-600 hover:text-primary-800"><i class="fas fa-edit"></i></button>
-                            <button onclick="deleteItem(${item.id})" class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
+                            <button onclick="editItem('${item.id}')" class="text-primary-600"><i class="fas fa-edit"></i></button>
+                            <button onclick="deleteItem('${item.id}')" class="text-red-500"><i class="fas fa-trash"></i></button>
                         </td>
-                    </tr>
-                `;
-        });
-      }
-
-      function openAddModal() {
-        document.getElementById("item-form").reset();
-        document.getElementById("item-id").value = "";
-        document.getElementById("item-image-preview").src =
-          "https://placehold.co/100?text=Preview";
-        document.getElementById("item-modal").classList.remove("hidden");
-      }
-
-      function editItem(id) {
-        const item = inventoryData.find((i) => i.id == id);
-        document.getElementById("item-id").value = item.id;
-        document.getElementById("item-name").value = item.name;
-        document.getElementById("item-category").value = item.category;
-        document.getElementById("item-stock").value = item.stock;
-        document.getElementById("item-image").value = item.image;
-        document.getElementById("item-image-preview").src = item.image;
-        document.getElementById("item-modal").classList.remove("hidden");
-      }
-
-      function deleteItem(id) {
-        Swal.fire({
-          title: "ลบรายการนี้?",
-          text: "ข้อมูลจะหายไปถาวร",
-          icon: "warning",
-          showCancelButton: true,
-          confirmButtonColor: "#d33",
-          confirmButtonText: "ลบ",
-        }).then(async (res) => {
-          if (res.isConfirmed) {
-            lastUserActionTime = Date.now(); // Mark action
-            inventoryData = inventoryData.filter((i) => i.id != id);
-            refreshUI();
-            await DataService.saveData({}, false);
-          }
-        });
-      }
-
-      document
-        .getElementById("item-form")
-        .addEventListener("submit", async (e) => {
-          e.preventDefault();
-          const id = document.getElementById("item-id").value;
-          const catInput = document.getElementById("item-category").value;
-
-          const newItem = {
-            id: id ? parseInt(id) : Date.now(),
-            name: document.getElementById("item-name").value,
-            category: catInput,
-            stock: parseInt(document.getElementById("item-stock").value),
-            image:
-              document.getElementById("item-image").value ||
-              "https://placehold.co/300x200?text=No+Image",
-          };
-
-          lastUserActionTime = Date.now(); // Mark action
-
-          if (id) {
-            const idx = inventoryData.findIndex((i) => i.id == id);
-            inventoryData[idx] = newItem;
-          } else {
-            newItem.remaining = newItem.stock;
-            inventoryData.push(newItem);
-          }
-
-          closeModal("item-modal");
-          refreshUI();
-
-          Swal.fire({
-            icon: "success",
-            title: "บันทึกเรียบร้อย",
-            showConfirmButton: false,
-            timer: 1000,
-            position: "center",
-          });
-
-          await DataService.saveData({}, false);
-        });
-
-      function toggleTheme() {
-        document.documentElement.classList.toggle("dark");
-        localStorage.setItem(
-          APP_CONFIG.storageKeys.theme,
-          document.documentElement.classList.contains("dark")
-            ? "dark"
-            : "light",
-        );
-      }
-
-      // --- INIT ---
-      (function () {
-        if (localStorage.getItem(APP_CONFIG.storageKeys.theme) === "dark") {
-          document.documentElement.classList.add("dark");
+                    </tr>`;
+            });
         }
-        initAuth();
-      })();
+
+        function populateCategories() {
+            const select = document.getElementById('filter-category');
+            const dl = document.getElementById('category-list');
+            select.innerHTML = '<option value="">ทุกหมวดหมู่</option>';
+            dl.innerHTML = '';
+            const cats = [...new Set(window.inventoryData.map(i => i.category).filter(Boolean))];
+            cats.forEach(c => {
+                select.innerHTML += `<option value="${c}">${c}</option>`;
+                dl.innerHTML += `<option value="${c}">`;
+            });
+        }
+
+        document.getElementById('search-inventory').addEventListener('input', renderInventory);
+        document.getElementById('filter-category').addEventListener('change', renderInventory);
+
+        // --- UTILS ---
+        
+        // Image Processing
+        function resizeImage(file, maxWidth = 800) {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        let w = img.width, h = img.height;
+                        if (w > maxWidth) { h = Math.round((h * maxWidth) / w); w = maxWidth; }
+                        canvas.width = w; canvas.height = h;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, w, h);
+                        resolve(canvas.toDataURL('image/jpeg', 0.6));
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+        
+        document.getElementById('item-image-file').addEventListener('change', async (e) => {
+            if(e.target.files[0]) {
+                const base64 = await resizeImage(e.target.files[0]);
+                document.getElementById('item-image-preview').src = base64;
+                document.getElementById('item-image').value = base64;
+            }
+        });
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(b => {
+                b.classList.remove('active-tab', 'bg-primary-50', 'text-primary-600', 'dark:bg-primary-900/30', 'dark:text-primary-400', 'bg-yellow-50', 'text-yellow-600', 'dark:text-yellow-400');
+                b.classList.add('text-gray-500', 'dark:text-gray-400');
+            });
+            const btn = document.getElementById(`tab-${tab}`);
+            if(tab === 'verify') btn.classList.add('active-tab', 'bg-yellow-50', 'text-yellow-600', 'dark:bg-yellow-900/30', 'dark:text-yellow-400');
+            else btn.classList.add('active-tab', 'bg-primary-50', 'text-primary-600', 'dark:bg-primary-900/30', 'dark:text-primary-400');
+            
+            ['inventory', 'my-items', 'verify', 'history', 'admin'].forEach(v => {
+                document.getElementById(`view-${v}`).classList.toggle('hidden', v !== tab);
+            });
+            
+            if(tab === 'my-items') renderMyItems();
+            if(tab === 'history') renderHistory();
+            if(tab === 'verify') renderVerify();
+        }
+
+        function toggleTheme() {
+            const html = document.documentElement;
+            if (html.classList.contains('dark')) {
+                html.classList.remove('dark');
+                localStorage.setItem(APP_CONFIG.storageKeys.theme, 'light');
+            } else {
+                html.classList.add('dark');
+                localStorage.setItem(APP_CONFIG.storageKeys.theme, 'dark');
+            }
+        }
+
+        // --- INIT ---
+        (function() {
+            if (localStorage.getItem(APP_CONFIG.storageKeys.theme) === 'dark') document.documentElement.classList.add('dark');
+            const storedUser = localStorage.getItem('ems_user_fb');
+            if(storedUser) initApp(JSON.parse(storedUser));
+            else {
+                document.getElementById('login-screen').classList.remove('hidden');
+                document.getElementById('app-screen').classList.add('hidden');
+            }
+        })();
+
     </script>
-  </body>
+</body>
 </html>
