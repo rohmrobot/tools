@@ -14,6 +14,9 @@
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
+    <!-- Chart.js (สำหรับ Dashboard) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
@@ -161,6 +164,11 @@
         <div class="bg-white dark:bg-dark-card shadow-sm border-b border-gray-200 dark:border-gray-700 sticky top-16 z-30">
             <div class="w-full px-4">
                 <div class="flex space-x-2 overflow-x-auto no-scrollbar py-2">
+                    <!-- ADMIN DASHBOARD TAB -->
+                    <button onclick="switchTab('dashboard')" id="tab-dashboard" class="tab-btn hidden flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 transition-all text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20">
+                        <i class="fas fa-chart-pie"></i> ภาพรวม
+                    </button>
+
                     <button onclick="switchTab('inventory')" id="tab-inventory" class="tab-btn active-tab flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 transition-all">
                         <i class="fas fa-box-open"></i> ยืมของ
                     </button>
@@ -169,14 +177,14 @@
                         <span id="my-items-badge" class="hidden absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] rounded-full flex items-center justify-center border-2 border-white dark:border-gray-800">0</span>
                     </button>
                     <button onclick="switchTab('verify')" id="tab-verify" class="tab-btn hidden flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 transition-all relative text-yellow-600 dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-900/20">
-                        <i class="fas fa-tasks"></i> ตรวจสอบคืนของ
+                        <i class="fas fa-tasks"></i> ตรวจสอบ
                         <span id="verify-badge" class="hidden absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] rounded-full flex items-center justify-center border-2 border-white dark:border-gray-800">0</span>
                     </button>
                     <button onclick="switchTab('history')" id="tab-history" class="tab-btn flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 transition-all">
                         <i class="fas fa-history"></i> ประวัติ
                     </button>
                     <button onclick="switchTab('admin')" id="tab-admin" class="tab-btn hidden flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 transition-all text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/20">
-                        <i class="fas fa-cog"></i> จัดการ (Admin)
+                        <i class="fas fa-cog"></i> จัดการสต็อก
                     </button>
                 </div>
             </div>
@@ -184,6 +192,84 @@
 
         <!-- Content -->
         <main class="flex-1 w-full px-4 py-6 pb-24">
+            
+            <!-- VIEW 0: DASHBOARD (ADMIN) -->
+            <div id="view-dashboard" class="hidden fade-in">
+                <div class="mb-6">
+                    <h2 class="text-2xl font-bold mb-4 flex items-center gap-2"><i class="fas fa-chart-line text-indigo-500"></i> ภาพรวมระบบ (Dashboard)</h2>
+                    
+                    <!-- Quota Estimation Bar -->
+                    <div class="bg-white dark:bg-dark-card p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 mb-6">
+                        <div class="flex justify-between items-end mb-2">
+                            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                <i class="fas fa-database text-orange-500 mr-1"></i> ปริมาณการโหลดข้อมูล (ประมาณการรายวัน)
+                            </span>
+                            <span class="text-xs font-bold text-primary-600 dark:text-primary-400" id="quota-text">0 / 50,000 Reads</span>
+                        </div>
+                        <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5 overflow-hidden">
+                            <div id="quota-bar" class="bg-gradient-to-r from-green-400 to-blue-500 h-2.5 rounded-full transition-all duration-500" style="width: 0%"></div>
+                        </div>
+                        <p class="text-[10px] text-gray-400 mt-2 text-right">* คำนวณจากจำนวนเอกสารที่โหลดใน Session นี้ (Free Tier: 50k reads/day)</p>
+                    </div>
+
+                    <!-- Stats Cards -->
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                        <div class="bg-white dark:bg-dark-card p-4 rounded-xl shadow-sm border-l-4 border-blue-500">
+                            <div class="text-xs text-gray-500">ทั้งหมดในสต็อก</div>
+                            <div class="text-2xl font-bold" id="stat-total-items">0</div>
+                        </div>
+                        <div class="bg-white dark:bg-dark-card p-4 rounded-xl shadow-sm border-l-4 border-green-500">
+                            <div class="text-xs text-gray-500">รายการยืมทั้งหมด</div>
+                            <div class="text-2xl font-bold" id="stat-total-logs">0</div>
+                        </div>
+                        <div class="bg-white dark:bg-dark-card p-4 rounded-xl shadow-sm border-l-4 border-yellow-500">
+                            <div class="text-xs text-gray-500">กำลังถูกยืม</div>
+                            <div class="text-2xl font-bold" id="stat-active-borrows">0</div>
+                        </div>
+                        <div class="bg-white dark:bg-dark-card p-4 rounded-xl shadow-sm border-l-4 border-indigo-500">
+                            <div class="text-xs text-gray-500">ผู้ใช้งาน</div>
+                            <div class="text-2xl font-bold" id="stat-users-count">-</div>
+                        </div>
+                    </div>
+
+                    <!-- Charts Area -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- Top Borrowers -->
+                        <div class="bg-white dark:bg-dark-card p-5 rounded-xl shadow-sm">
+                            <h3 class="font-bold mb-4 text-sm text-gray-700 dark:text-gray-300">🏆 ผู้ที่ยืมบ่อยที่สุด (Top 5)</h3>
+                            <div class="relative h-64">
+                                <canvas id="chart-users"></canvas>
+                            </div>
+                        </div>
+                        
+                        <!-- Top Items -->
+                        <div class="bg-white dark:bg-dark-card p-5 rounded-xl shadow-sm">
+                            <h3 class="font-bold mb-4 text-sm text-gray-700 dark:text-gray-300">📦 อุปกรณ์ยอดฮิต (Top 5)</h3>
+                            <div class="relative h-64">
+                                <canvas id="chart-items"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Most/Least Borrowed Table -->
+                    <div class="mt-6 bg-white dark:bg-dark-card rounded-xl shadow-sm overflow-hidden">
+                        <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-700">
+                            <h3 class="font-bold text-sm">สรุปความนิยมอุปกรณ์</h3>
+                        </div>
+                        <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div>
+                                <h4 class="text-green-600 font-bold text-xs uppercase mb-2">🔥 ยืมมากที่สุด</h4>
+                                <ul id="list-most-borrowed" class="space-y-2 text-sm"></ul>
+                            </div>
+                            <div>
+                                <h4 class="text-red-500 font-bold text-xs uppercase mb-2">❄️ ยืมน้อยที่สุด (Zero Use)</h4>
+                                <ul id="list-least-borrowed" class="space-y-2 text-sm text-gray-500"></ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- VIEW 1: INVENTORY -->
             <div id="view-inventory" class="fade-in">
                 <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
@@ -316,7 +402,7 @@
             <form id="item-form" class="space-y-4">
                 <input type="hidden" id="item-id">
                 
-                <!-- NEW: Toggle Image Source -->
+                <!-- Image Source Selection -->
                 <div>
                     <label class="block text-sm mb-2 font-medium">รูปภาพอุปกรณ์</label>
                     <div class="flex gap-4 mb-3">
@@ -338,21 +424,17 @@
                              </div>
                          </div>
                          <div class="flex-1 min-w-0">
-                             <!-- File Input -->
                              <div id="input-type-file">
                                  <label class="cursor-pointer bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 px-4 py-2 rounded-lg text-sm inline-flex items-center gap-2 hover:bg-gray-50 dark:hover:bg-gray-600 transition shadow-sm w-full justify-center">
                                     <i class="fas fa-camera"></i> เลือกไฟล์รูปภาพ
                                     <input type="file" id="item-image-file" accept="image/*" class="hidden">
                                  </label>
-                                 <p class="text-xs text-gray-400 mt-2">รองรับ JPG, PNG (ระบบจะย่อให้อัตโนมัติ)</p>
+                                 <p class="text-xs text-gray-400 mt-2">รองรับ JPG, PNG</p>
                              </div>
-
-                             <!-- URL Input -->
                              <div id="input-type-url" class="hidden">
                                  <input type="url" id="item-image-url" placeholder="https://example.com/image.jpg" class="w-full px-3 py-2 text-sm border rounded-lg dark:bg-gray-700 dark:border-gray-600 focus:ring-2 focus:ring-primary-500 outline-none">
                                  <p class="text-xs text-gray-400 mt-2">วางลิงก์รูปภาพจากเว็บอื่น</p>
                              </div>
-
                              <input type="hidden" id="item-image">
                          </div>
                     </div>
@@ -380,9 +462,6 @@
         import { getFirestore, collection, doc, getDocs, getDoc, addDoc, updateDoc, deleteDoc, onSnapshot, query, where, orderBy, runTransaction, writeBatch } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
         // --- FIREBASE CONFIGURATION ---
-        // NOTE: ข้อมูลส่วนนี้เปิดเผยได้ (Public) ไม่ใช่ความลับระดับ Server
-        // แต่ต้องไปตั้งค่า "Domain Restriction" ใน Google Cloud Console 
-        // ให้ยอมรับ request จาก https://your-username.github.io เท่านั้น
        const firebaseConfig = {
           apiKey: "AIzaSyCqP4PJZjifXa96NLdJ5Dd9A9AWLYcIiqs",
           authDomain: "borrow-tools-system.firebaseapp.com",
@@ -400,12 +479,7 @@
             console.log("Firebase Connected");
         } catch (e) {
             console.error("Firebase Config Error:", e);
-            Swal.fire({
-                icon: 'error',
-                title: 'Config Error',
-                text: 'กรุณาใส่ค่า Firebase Config ในไฟล์ HTML',
-                footer: '<a href="#">ดูวิธีตั้งค่าในคู่มือ</a>'
-            });
+            Swal.fire({ icon: 'error', title: 'Config Error', text: 'กรุณาใส่ค่า Firebase Config' });
         }
 
         // --- GLOBAL STATE ---
@@ -413,6 +487,10 @@
         window.inventoryData = [];
         window.transactionLogs = [];
         window.currentBorrowItemId = null;
+        
+        // Quota Tracking Variables
+        window.quotaReads = 0;
+        const QUOTA_LIMIT = 50000;
 
         // --- EXPORT FUNCTIONS ---
         window.switchTab = switchTab;
@@ -427,19 +505,17 @@
             el.value = v;
         };
 
-        // --- FIX: DataService for Firebase ---
-        // เพิ่ม DataService object เพื่อรองรับปุ่ม refresh ใน HTML
+        // --- FIX: DataService ---
         window.DataService = {
             loadData: () => {
-                // สำหรับ Firebase เราใช้ Realtime Listener อยู่แล้ว
-                // แต่ถ้าผู้ใช้กดปุ่ม เราสามารถ refresh หน้าจอหรือแค่แจ้งว่าข้อมูลล่าสุดแล้ว
                 const icon = document.querySelector('.fa-sync-alt');
                 if(icon) {
                     icon.classList.add('fa-spin');
                     setTimeout(() => icon.classList.remove('fa-spin'), 1000);
                 }
-                console.log("Firebase Data is Realtime synced.");
-            }
+            },
+            // Background save placeholder (Firebase uses direct SDK calls)
+            saveData: async () => true
         };
 
         // --- AUTH ---
@@ -453,6 +529,7 @@
             
             try {
                 // Auth by checking 'users' collection
+                window.quotaReads++; // Count read
                 const q = query(collection(db, "users"), where("empId", "==", inputId));
                 const querySnapshot = await getDocs(q);
 
@@ -460,27 +537,23 @@
                     const userData = querySnapshot.docs[0].data();
                     const user = {
                         empId: userData.empId,
-                        name: userData.name,
+                        name: userData.name, // Use name from DB
                         isAdmin: userData.role === 'admin'
                     };
                     localStorage.setItem('ems_user_fb', JSON.stringify(user));
                     initApp(user);
                 } else {
-                    // **NEW LOGIC: Auto-register or allow login if not found**
-                    // If user provides Name, assume they want to enter as new user/guest
-                    
-                    // Create new user object
+                    // Auto-register logic
                     const newUser = {
                         empId: inputId,
-                        name: inputName || `User ${inputId}`, // Use input name or fallback
+                        name: inputName || `User ${inputId}`,
                         role: inputId === '9999' ? 'admin' : 'user'
                     };
 
-                    // Try to save to Firestore for future logins
                     try {
                         await addDoc(collection(db, "users"), newUser);
                     } catch(err) {
-                        console.warn("Auto-register to Firestore failed (might be permission), proceeding locally", err);
+                        console.warn("Auto-register failed:", err);
                     }
 
                     const user = { ...newUser, isAdmin: newUser.role === 'admin' };
@@ -507,21 +580,23 @@
             document.getElementById('user-display-name').innerText = user.name;
             document.getElementById('user-display-role').innerText = user.isAdmin ? "Admin" : "User";
             
-            // Check if mobile elements exist before setting innerText
             const mobileName = document.getElementById('mobile-user-name');
             if (mobileName) mobileName.innerText = user.name;
-            
             const mobileRole = document.getElementById('mobile-user-role');
             if (mobileRole) mobileRole.innerText = user.isAdmin ? "Admin" : "User";
 
             const adminTab = document.getElementById('tab-admin');
             const verifyTab = document.getElementById('tab-verify');
+            const dashboardTab = document.getElementById('tab-dashboard'); // New Tab
+
             if (user.isAdmin) {
                 adminTab.classList.remove('hidden');
                 verifyTab.classList.remove('hidden');
+                dashboardTab.classList.remove('hidden');
             } else {
                 adminTab.classList.add('hidden');
                 verifyTab.classList.add('hidden');
+                dashboardTab.classList.add('hidden');
             }
 
             document.getElementById('login-screen').classList.add('hidden');
@@ -531,38 +606,159 @@
             switchTab('inventory');
         }
 
-        // --- REALTIME LISTENERS ---
+        // --- REALTIME LISTENERS & QUOTA TRACKING ---
+        function updateQuotaUI() {
+            const bar = document.getElementById('quota-bar');
+            const text = document.getElementById('quota-text');
+            if(bar && text) {
+                const percent = Math.min((window.quotaReads / QUOTA_LIMIT) * 100, 100);
+                bar.style.width = `${percent}%`;
+                bar.classList.toggle('from-green-400', percent < 50);
+                bar.classList.toggle('to-blue-500', percent < 50);
+                bar.classList.toggle('bg-red-500', percent >= 90);
+                text.innerText = `${window.quotaReads.toLocaleString()} / ${QUOTA_LIMIT.toLocaleString()} Reads`;
+            }
+        }
+
         function startRealtimeListeners() {
-            // Inventory Listener
+            // Inventory
             onSnapshot(collection(db, "inventory"), (snapshot) => {
+                window.quotaReads += snapshot.docChanges().length; // Approximate read count on change
+                updateQuotaUI();
+                
                 window.inventoryData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 renderInventory();
-                if(window.currentUser.isAdmin) renderAdminTable();
+                if(window.currentUser.isAdmin) {
+                    renderAdminTable();
+                    renderDashboard(); // Update Dashboard
+                }
                 populateCategories();
             });
 
-            // Logs Listener
+            // Logs
             onSnapshot(collection(db, "logs"), (snapshot) => {
+                window.quotaReads += snapshot.docChanges().length;
+                updateQuotaUI();
+
                 window.transactionLogs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 renderHistory();
                 renderMyItems();
-                if(window.currentUser.isAdmin) renderVerify();
+                if(window.currentUser.isAdmin) {
+                    renderVerify();
+                    renderDashboard(); // Update Dashboard
+                }
             });
         }
 
-        // --- CORE LOGIC ---
+        // --- DASHBOARD LOGIC (NEW) ---
+        let usersChartInstance = null;
+        let itemsChartInstance = null;
 
+        function renderDashboard() {
+            if (!window.currentUser.isAdmin) return;
+
+            // 1. Calculate Stats
+            const totalItems = window.inventoryData.reduce((sum, i) => sum + i.stock, 0);
+            const totalLogs = window.transactionLogs.length;
+            const activeBorrows = window.transactionLogs.filter(l => l.status === 'borrowed').length;
+            
+            // Calculate Unique Users (Count distinct empId from logs)
+            const uniqueUsers = new Set(window.transactionLogs.map(l => l.empId)).size;
+            
+            // Set Stats Cards
+            document.getElementById('stat-total-items').innerText = totalItems;
+            document.getElementById('stat-total-logs').innerText = totalLogs;
+            document.getElementById('stat-active-borrows').innerText = activeBorrows;
+            document.getElementById('stat-users-count').innerText = uniqueUsers; // Updated here
+
+            // 2. Prepare Data for Charts
+            const userCounts = {};
+            const itemCounts = {};
+            
+            window.transactionLogs.forEach(log => {
+                // Count by User
+                userCounts[log.borrowerName] = (userCounts[log.borrowerName] || 0) + 1;
+                // Count by Item
+                itemCounts[log.itemName] = (itemCounts[log.itemName] || 0) + 1;
+            });
+
+            // Top Users
+            const topUsers = Object.entries(userCounts)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 5);
+            
+            // Top Items
+            const topItems = Object.entries(itemCounts)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 5);
+
+            // 3. Render Charts
+            renderChart('chart-users', 'จำนวนครั้งที่ยืม', topUsers, 'rgba(54, 162, 235, 0.6)');
+            renderChart('chart-items', 'จำนวนครั้งที่ถูกยืม', topItems, 'rgba(255, 206, 86, 0.6)');
+
+            // 4. Most/Least Borrowed Table
+            const allItemsSorted = Object.entries(itemCounts).sort((a, b) => b[1] - a[1]);
+            const mostBorrowedList = document.getElementById('list-most-borrowed');
+            const leastBorrowedList = document.getElementById('list-least-borrowed');
+            
+            mostBorrowedList.innerHTML = allItemsSorted.slice(0, 3).map(([name, count]) => 
+                `<li class="flex justify-between"><span>${name}</span><span class="font-bold">${count} ครั้ง</span></li>`
+            ).join('');
+
+            // Find items with 0 borrows
+            const zeroBorrows = window.inventoryData.filter(i => !itemCounts[i.name]);
+            leastBorrowedList.innerHTML = zeroBorrows.slice(0, 3).map(i => 
+                `<li class="flex justify-between"><span>${i.name}</span><span class="text-xs bg-gray-100 px-2 rounded">0 ครั้ง</span></li>`
+            ).join('') || '<li class="text-gray-400 italic">ไม่มีอุปกรณ์ที่ไม่เคยถูกยืม</li>';
+        }
+
+        function renderChart(canvasId, label, dataEntries, color) {
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            
+            // Destroy old chart if exists
+            if (canvasId === 'chart-users' && usersChartInstance) usersChartInstance.destroy();
+            if (canvasId === 'chart-items' && itemsChartInstance) itemsChartInstance.destroy();
+
+            const chart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: dataEntries.map(e => e[0]),
+                    datasets: [{
+                        label: label,
+                        data: dataEntries.map(e => e[1]),
+                        backgroundColor: color,
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: { 
+                        y: { 
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1, // บังคับให้เพิ่มทีละ 1
+                                precision: 0 // ไม่แสดงทศนิยม
+                            }
+                        } 
+                    }
+                }
+            });
+
+            if (canvasId === 'chart-users') usersChartInstance = chart;
+            if (canvasId === 'chart-items') itemsChartInstance = chart;
+        }
+
+        // --- CORE LOGIC (Standard) ---
         window.openBorrowModal = (id) => {
             const item = window.inventoryData.find(i => i.id == id);
             if (!item) return;
-            
             window.currentBorrowItemId = id;
             document.getElementById('borrow-item-name').innerText = item.name;
             document.getElementById('borrow-item-max').innerText = item.remaining;
             document.getElementById('borrow-img-preview').src = item.image || "https://placehold.co/100";
             document.getElementById('borrow-qty').max = item.remaining;
             document.getElementById('borrow-qty').value = 1;
-            
             document.getElementById('borrow-modal').classList.remove('hidden');
         };
 
@@ -570,21 +766,16 @@
             const qty = parseInt(document.getElementById('borrow-qty').value);
             const itemId = window.currentBorrowItemId;
             const btn = document.getElementById('btn-confirm-borrow');
-            
-            btn.disabled = true;
-            btn.innerText = '...';
+            btn.disabled = true; btn.innerText = '...';
 
             try {
                 await runTransaction(db, async (transaction) => {
                     const itemRef = doc(db, "inventory", itemId);
                     const itemDoc = await transaction.get(itemRef);
                     if (!itemDoc.exists()) throw "Item does not exist!";
-                    
                     const currentRemaining = itemDoc.data().remaining;
                     if (currentRemaining < qty) throw "ของหมดแล้ว!";
-
                     transaction.update(itemRef, { remaining: currentRemaining - qty });
-                    
                     const newLogRef = doc(collection(db, "logs"));
                     transaction.set(newLogRef, {
                         itemId: itemId,
@@ -597,59 +788,31 @@
                         returnDate: null
                     });
                 });
-
                 closeModal('borrow-modal');
                 Swal.fire({ icon: 'success', title: 'ยืมสำเร็จ', timer: 1500, showConfirmButton: false });
-
-            } catch (e) {
-                Swal.fire('เกิดข้อผิดพลาด', e.toString(), 'error');
-            } finally {
-                btn.disabled = false;
-                btn.innerText = 'ยืนยัน';
-            }
+            } catch (e) { Swal.fire('Error', e.toString(), 'error'); } 
+            finally { btn.disabled = false; btn.innerText = 'ยืนยัน'; }
         };
 
         window.requestReturn = async (logId) => {
-            const result = await Swal.fire({
-                title: 'ยืนยันการคืน?',
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonText: 'ยืนยัน'
-            });
-
+            const result = await Swal.fire({ title: 'ยืนยันการคืน?', icon: 'question', showCancelButton: true, confirmButtonText: 'ยืนยัน' });
             if (result.isConfirmed) {
-                try {
-                    await updateDoc(doc(db, "logs", logId), { status: 'pending_return' });
-                } catch (e) { console.error(e); }
+                try { await updateDoc(doc(db, "logs", logId), { status: 'pending_return' }); } catch (e) { console.error(e); }
             }
         };
 
         window.returnAllItems = async () => {
-            const result = await Swal.fire({
-                title: 'คืนทั้งหมด?',
-                text: 'ยืนยันการคืนอุปกรณ์ทั้งหมดที่ยืมอยู่',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#ef4444',
-                confirmButtonText: 'ยืนยัน'
-            });
-
+            const result = await Swal.fire({ title: 'คืนทั้งหมด?', icon: 'warning', showCancelButton: true, confirmButtonText: 'ยืนยัน' });
             if(result.isConfirmed) {
-                // Batch write for atomicity
                 const batch = writeBatch(db);
                 let count = 0;
                 window.transactionLogs.forEach(log => {
                     if(log.empId == window.currentUser.empId && log.status === 'borrowed') {
-                        const logRef = doc(db, "logs", log.id);
-                        batch.update(logRef, { status: 'pending_return' });
+                        batch.update(doc(db, "logs", log.id), { status: 'pending_return' });
                         count++;
                     }
                 });
-                
-                if(count > 0) {
-                    await batch.commit();
-                    Swal.fire({ icon: 'success', title: 'แจ้งคืนเรียบร้อย', timer: 1500, showConfirmButton: false });
-                }
+                if(count > 0) await batch.commit();
             }
         };
 
@@ -659,39 +822,44 @@
                     const logRef = doc(db, "logs", logId);
                     const logDoc = await transaction.get(logRef);
                     if (!logDoc.exists()) throw "Log not found";
-                    
                     const logData = logDoc.data();
                     const itemRef = doc(db, "inventory", logData.itemId);
                     const itemDoc = await transaction.get(itemRef);
-
-                    transaction.update(logRef, { 
-                        status: 'returned',
-                        returnDate: new Date().toISOString()
-                    });
-
+                    transaction.update(logRef, { status: 'returned', returnDate: new Date().toISOString() });
                     if (itemDoc.exists()) {
-                        const newRemaining = (itemDoc.data().remaining || 0) + logData.qty;
-                        transaction.update(itemRef, { remaining: newRemaining });
+                        transaction.update(itemRef, { remaining: (itemDoc.data().remaining || 0) + logData.qty });
                     }
                 });
-            } catch (e) {
-                Swal.fire('Error', e.toString(), 'error');
-            }
+            } catch (e) { Swal.fire('Error', e.toString(), 'error'); }
         };
 
         window.verifyAllReturns = async () => {
-            // Note: Transactions in loop is not ideal, but for small batch acceptable.
-            // Or use batch write if stock update wasn't dependent on read.
-            // Since we need to read stock to update it, better to do one-by-one or simpler logic.
-            // Here we iterate one by one for safety.
             const pending = window.transactionLogs.filter(l => l.status === 'pending_return');
-            for (const log of pending) {
-                await window.adminConfirmReturn(log.id);
-            }
-            Swal.fire({ icon: 'success', title: 'รับคืนทั้งหมดเรียบร้อย', timer: 1500, showConfirmButton: false });
+            for (const log of pending) await window.adminConfirmReturn(log.id);
+            Swal.fire({ icon: 'success', title: 'เรียบร้อย', timer: 1500, showConfirmButton: false });
         };
 
-        // Admin: Add/Edit Item
+        // --- LOG MANAGEMENT (DELETE) ---
+        window.deleteLog = async (logId) => {
+            const result = await Swal.fire({
+                title: 'ลบประวัติ?',
+                text: "การลบประวัติจะไม่คืนค่า Stock อุปกรณ์ (กรุณาตรวจสอบ)",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                confirmButtonText: 'ลบถาวร'
+            });
+            if(result.isConfirmed) {
+                try {
+                    await deleteDoc(doc(db, "logs", logId));
+                    Swal.fire({ icon: 'success', title: 'ลบเรียบร้อย', timer: 1000, showConfirmButton: false });
+                } catch(e) {
+                    Swal.fire('Error', 'ไม่สามารถลบได้ (ตรวจสอบ Security Rules)', 'error');
+                }
+            }
+        }
+
+        // --- ADMIN: ITEM MANAGEMENT ---
         document.getElementById('item-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const id = document.getElementById('item-id').value;
@@ -699,21 +867,14 @@
             const category = document.getElementById('item-category').value;
             const stock = parseInt(document.getElementById('item-stock').value);
             
-            // Get Image value based on selected source
             const sourceType = document.querySelector('input[name="img-source"]:checked').value;
-            let image = "";
-            if (sourceType === 'file') {
-                image = document.getElementById('item-image').value;
-            } else {
-                image = document.getElementById('item-image-url').value;
-            }
+            let image = sourceType === 'file' ? document.getElementById('item-image').value : document.getElementById('item-image-url').value;
             if(!image) image = "https://placehold.co/300x200?text=No+Image";
 
             const itemData = { name, category, stock, image };
 
             try {
                 if (id) {
-                    // Edit logic: Try to preserve remaining count relative to stock change
                     const oldItem = window.inventoryData.find(i => i.id == id);
                     const borrowed = oldItem.stock - oldItem.remaining;
                     itemData.remaining = stock - borrowed;
@@ -727,41 +888,22 @@
             } catch (e) { console.error(e); }
         });
 
-        // --- Image Source Toggle Logic ---
         window.toggleImageSource = (type) => {
-            const fileInput = document.getElementById('input-type-file');
-            const urlInput = document.getElementById('input-type-url');
-            
-            if (type === 'file') {
-                fileInput.classList.remove('hidden');
-                urlInput.classList.add('hidden');
-            } else {
-                fileInput.classList.add('hidden');
-                urlInput.classList.remove('hidden');
-            }
+            document.getElementById('input-type-file').classList.toggle('hidden', type !== 'file');
+            document.getElementById('input-type-url').classList.toggle('hidden', type !== 'url');
         };
-
-        // Preview URL Image on Input
         document.getElementById('item-image-url').addEventListener('input', (e) => {
-            const url = e.target.value;
-            if(url) {
-                document.getElementById('item-image-preview').src = url;
-            }
+            if(e.target.value) document.getElementById('item-image-preview').src = e.target.value;
         });
 
-        // --- NEW: Added openAddModal implementation ---
         window.openAddModal = () => {
             document.getElementById('item-modal-title').innerText = "เพิ่มอุปกรณ์ใหม่";
             document.getElementById('item-form').reset();
             document.getElementById('item-id').value = "";
             document.getElementById('item-image').value = "";
             document.getElementById('item-image-preview').src = "https://placehold.co/100?text=Preview";
-            document.getElementById('item-image-file').value = ""; 
-            
-            // Reset to File Upload default
             document.querySelector('input[name="img-source"][value="file"]').checked = true;
             window.toggleImageSource('file');
-
             document.getElementById('item-modal').classList.remove('hidden');
         };
 
@@ -773,48 +915,33 @@
             document.getElementById('item-category').value = item.category;
             document.getElementById('item-stock').value = item.stock;
             
-            // Determine image source type
-            const isUrl = item.image && item.image.startsWith('http');
-            if (isUrl) {
-                document.querySelector('input[name="img-source"][value="url"]').checked = true;
-                window.toggleImageSource('url');
-                document.getElementById('item-image-url').value = item.image;
-            } else {
-                document.querySelector('input[name="img-source"][value="file"]').checked = true;
-                window.toggleImageSource('file');
-                document.getElementById('item-image').value = item.image;
-            }
+            const isUrl = item.image && item.image.startsWith('http') && !item.image.startsWith('data:');
+            document.querySelector(`input[name="img-source"][value="${isUrl ? 'url' : 'file'}"]`).checked = true;
+            window.toggleImageSource(isUrl ? 'url' : 'file');
             
-            document.getElementById('item-image-preview').src = item.image || "https://placehold.co/100?text=No+Image";
+            if(isUrl) document.getElementById('item-image-url').value = item.image;
+            else document.getElementById('item-image').value = item.image;
+            
+            document.getElementById('item-image-preview').src = item.image || "https://placehold.co/100";
             document.getElementById('item-modal').classList.remove('hidden');
         };
 
         window.deleteItem = async (id) => {
-            const result = await Swal.fire({
-                title: 'ลบรายการ?',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#d33',
-                confirmButtonText: 'ลบ'
-            });
-            if(result.isConfirmed) {
-                await deleteDoc(doc(db, "inventory", id));
-            }
+            const result = await Swal.fire({ title: 'ลบรายการ?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'ลบ' });
+            if(result.isConfirmed) await deleteDoc(doc(db, "inventory", id));
         };
 
-        // --- RENDER HELPERS ---
+        // --- RENDER FUNCTIONS ---
         function renderInventory() {
             const grid = document.getElementById('inventory-grid');
             const search = document.getElementById('search-inventory').value.toLowerCase();
             const catFilter = document.getElementById('filter-category').value;
             grid.innerHTML = '';
-
             const items = window.inventoryData.filter(i => {
                 const matchName = i.name.toLowerCase().includes(search);
                 const matchCat = catFilter ? i.category === catFilter : true;
                 return matchName && matchCat;
             });
-
             items.forEach(item => {
                 const isOut = item.remaining <= 0;
                 grid.innerHTML += `
@@ -829,17 +956,15 @@
                             <div class="text-xs text-gray-400 mb-1">${item.category || 'ทั่วไป'}</div>
                             <h3 class="font-bold text-gray-800 dark:text-gray-100 text-lg mb-1 leading-snug line-clamp-2">${item.name}</h3>
                             <div class="flex-1"></div>
-                            <button onclick="openBorrowModal('${item.id}')" ${isOut ? 'disabled' : ''} 
-                                class="mt-4 w-full py-2.5 rounded-xl font-medium transition flex items-center justify-center gap-2
-                                ${isOut ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-primary-600 text-white hover:bg-primary-700 shadow-lg'}">
+                            <button onclick="openBorrowModal('${item.id}')" ${isOut ? 'disabled' : ''} class="mt-4 w-full py-2.5 rounded-xl font-medium transition flex items-center justify-center gap-2 ${isOut ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-primary-600 text-white hover:bg-primary-700 shadow-lg'}">
                                 ${isOut ? 'ของหมด' : 'ยืมรายการนี้'}
                             </button>
                         </div>
-                    </div>
-                `;
+                    </div>`;
             });
         }
 
+        // ... renderMyItems, renderVerify, renderAdminTable, populateCategories (Same as before) ...
         function renderMyItems() {
             const activeList = document.getElementById('my-items-active-list');
             const pendingList = document.getElementById('my-items-pending-list');
@@ -888,7 +1013,6 @@
             const list = document.getElementById('verify-list');
             const badge = document.getElementById('verify-badge');
             const verifyAllBtn = document.getElementById('btn-verify-all');
-            
             list.innerHTML = '';
             const pending = window.transactionLogs.filter(l => l.status === 'pending_return');
             
@@ -915,8 +1039,7 @@
                         <div class="bg-gray-50 dark:bg-gray-800 p-3 flex justify-end">
                             <button onclick="adminConfirmReturn('${log.id}')" class="bg-green-600 text-white px-4 py-1.5 rounded-lg text-sm flex items-center gap-2"><i class="fas fa-check"></i> รับคืน</button>
                         </div>
-                    </div>
-                `;
+                    </div>`;
             });
         }
 
@@ -929,6 +1052,9 @@
 
             logs.forEach(log => {
                 const status = log.status === 'borrowed' ? '<span class="text-blue-500">กำลังยืม</span>' : log.status === 'pending_return' ? '<span class="text-yellow-500">รอคืน</span>' : '<span class="text-green-500">คืนแล้ว</span>';
+                const deleteBtn = window.currentUser.isAdmin ? 
+                    `<button onclick="deleteLog('${log.id}')" class="text-red-400 hover:text-red-600 ml-2" title="ลบประวัติ"><i class="fas fa-trash-alt"></i></button>` : '';
+                
                 tbody.innerHTML += `
                     <tr class="bg-white dark:bg-dark-card border-b dark:border-gray-700">
                         <td class="px-4 py-3">${new Date(log.borrowDate).toLocaleDateString('th-TH')}</td>
@@ -936,7 +1062,10 @@
                         <td class="px-4 py-3">${log.itemName}</td>
                         <td class="px-4 py-3 text-center">${log.qty}</td>
                         <td class="px-4 py-3 text-center">${status}</td>
-                        <td class="px-4 py-3 text-center">${log.returnDate ? new Date(log.returnDate).toLocaleDateString('th-TH') : '-'}</td>
+                        <td class="px-4 py-3 text-center">
+                            ${log.returnDate ? new Date(log.returnDate).toLocaleDateString('th-TH') : '-'}
+                            ${deleteBtn}
+                        </td>
                     </tr>`;
             });
         }
@@ -975,8 +1104,6 @@
         document.getElementById('filter-category').addEventListener('change', renderInventory);
 
         // --- UTILS ---
-        
-        // Image Processing
         function resizeImage(file, maxWidth = 800) {
             return new Promise((resolve) => {
                 const reader = new FileReader();
@@ -1008,19 +1135,29 @@
         function switchTab(tab) {
             document.querySelectorAll('.tab-btn').forEach(b => {
                 b.classList.remove('active-tab', 'bg-primary-50', 'text-primary-600', 'dark:bg-primary-900/30', 'dark:text-primary-400', 'bg-yellow-50', 'text-yellow-600', 'dark:text-yellow-400');
+                if(b.id === 'tab-verify') {
+                    b.classList.remove('text-yellow-600', 'dark:text-yellow-400', 'bg-yellow-50', 'dark:bg-yellow-900/20');
+                } else if(b.id === 'tab-dashboard') {
+                    b.classList.remove('text-indigo-600', 'dark:text-indigo-400', 'bg-indigo-50', 'dark:bg-indigo-900/20');
+                }
                 b.classList.add('text-gray-500', 'dark:text-gray-400');
             });
+
             const btn = document.getElementById(`tab-${tab}`);
+            btn.classList.remove('text-gray-500', 'dark:text-gray-400');
+            
             if(tab === 'verify') btn.classList.add('active-tab', 'bg-yellow-50', 'text-yellow-600', 'dark:bg-yellow-900/30', 'dark:text-yellow-400');
+            else if(tab === 'dashboard') btn.classList.add('active-tab', 'bg-indigo-50', 'text-indigo-600', 'dark:bg-indigo-900/30', 'dark:text-indigo-400');
             else btn.classList.add('active-tab', 'bg-primary-50', 'text-primary-600', 'dark:bg-primary-900/30', 'dark:text-primary-400');
             
-            ['inventory', 'my-items', 'verify', 'history', 'admin'].forEach(v => {
+            ['inventory', 'my-items', 'verify', 'history', 'admin', 'dashboard'].forEach(v => {
                 document.getElementById(`view-${v}`).classList.toggle('hidden', v !== tab);
             });
             
             if(tab === 'my-items') renderMyItems();
             if(tab === 'history') renderHistory();
             if(tab === 'verify') renderVerify();
+            if(tab === 'dashboard') renderDashboard();
         }
 
         function toggleTheme() {
