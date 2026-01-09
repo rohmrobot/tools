@@ -98,6 +98,16 @@
       .no-spinner {
         -moz-appearance: textfield;
       }
+      /* Image Zoom Transition */
+      .zoom-enter {
+        transform: scale(0.9);
+        opacity: 0;
+      }
+      .zoom-enter-active {
+        transform: scale(1);
+        opacity: 1;
+        transition: all 0.2s ease-out;
+      }
     </style>
   </head>
   <body
@@ -111,14 +121,14 @@
         storageKeys: {
           user: "ems_user_fb",
           theme: "ems_theme",
-        //   localData: "ems_data_inventory",
-        //   localLogs: "ems_data_logs",
         },
       };
 
       window.handleImageError = (img) => {
         img.onerror = null;
         img.src = "https://placehold.co/300x200?text=No+Image";
+        img.onclick = null; // Disable click if error
+        img.style.cursor = "default";
       };
 
       window.formatGoogleDriveLink = (url) => {
@@ -171,14 +181,30 @@
             timer: 3000,
             timerProgressBar: true
         });
-        // รีโหลดข้อมูลเมื่อกลับมาออนไลน์
-        if(window.DataService && window.DataService.loadData) {
-            // อาจจะ trigger การโหลดใหม่ถ้าจำเป็น
-        }
       });
     </script>
 
-    <!-- REMOVED: #loading-overlay -->
+    <!-- Image Lightbox Modal -->
+    <div 
+        id="image-modal" 
+        class="fixed inset-0 z-[100] bg-black/90 hidden flex items-center justify-center cursor-zoom-out p-4"
+        onclick="closeImageModal()"
+    >
+        <div class="relative max-w-full max-h-full">
+            <img 
+                id="image-modal-content" 
+                src="" 
+                class="max-h-[90vh] max-w-full object-contain rounded-lg shadow-2xl transition-transform duration-300 transform scale-95"
+                onclick="event.stopPropagation()" 
+            />
+            <button 
+                class="absolute -top-10 right-0 text-white text-3xl hover:text-gray-300 focus:outline-none"
+                onclick="closeImageModal()"
+            >
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </div>
 
     <div
       id="saving-indicator"
@@ -205,7 +231,7 @@
             ระบบเบิก-คืนเครื่องมือ
           </h1>
           <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">
-            Equipment Management System (Firebase)
+            Equipment Management System
           </p>
         </div>
         <form id="login-form" class="space-y-5">
@@ -223,7 +249,7 @@
                 id="login-id"
                 required
                 class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary-500 outline-none transition"
-                placeholder="กรอกรหัสพนักงาน (เช่น 9999)"
+                placeholder="กรอกรหัสพนักงาน"
               />
             </div>
           </div>
@@ -409,12 +435,21 @@
             >
               <i class="fas fa-cog"></i> จัดการสต็อก
             </button>
+            <button
+              onclick="switchTab('users')"
+              id="tab-users"
+              class="tab-btn hidden flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 transition-all text-pink-600 dark:text-pink-400 bg-pink-50 dark:bg-pink-900/20"
+            >
+              <i class="fas fa-users-cog"></i> ผู้ใช้งาน
+            </button>
           </div>
         </div>
       </div>
 
       <main class="flex-1 w-full px-4 py-6 pb-24">
         <div id="view-dashboard" class="hidden fade-in">
+          <!-- Dashboard Content -->
+          <!-- Same as previous -->
           <div class="mb-6">
             <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
               <i class="fas fa-chart-line text-indigo-500"></i> ภาพรวมระบบ
@@ -572,6 +607,7 @@
         </div>
 
         <div id="view-my-items" class="hidden fade-in">
+          <!-- My Items Content -->
           <div class="flex justify-between items-end mb-6">
             <div>
               <h2 class="text-2xl font-bold text-gray-800 dark:text-white">
@@ -628,6 +664,7 @@
         </div>
 
         <div id="view-verify" class="hidden fade-in">
+          <!-- Verify Content -->
           <div class="flex justify-between items-center mb-6">
             <h2 class="text-2xl font-bold">ตรวจสอบคืนของ</h2>
             <button
@@ -651,6 +688,7 @@
         </div>
 
         <div id="view-history" class="hidden fade-in">
+          <!-- History Content -->
           <div class="flex justify-between items-center mb-6">
             <h2 class="text-xl font-bold">ประวัติการยืม-คืน</h2>
             <div>
@@ -685,6 +723,7 @@
         </div>
 
         <div id="view-admin" class="hidden fade-in">
+          <!-- Admin Content -->
           <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
             <h2 class="text-xl font-bold">จัดการสต็อก</h2>
             <div class="flex gap-2 w-full md:w-auto">
@@ -731,9 +770,31 @@
             </table>
           </div>
         </div>
+
+        <!-- Users View -->
+        <div id="view-users" class="hidden fade-in">
+            <h2 class="text-xl font-bold mb-6">จัดการผู้ใช้งาน</h2>
+            <div class="bg-white dark:bg-dark-card rounded-xl shadow-sm overflow-hidden border border-gray-200 dark:border-gray-700 overflow-x-auto">
+                <table class="w-full text-sm text-left">
+                    <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-300 border-b dark:border-gray-600">
+                        <tr>
+                            <th class="px-4 py-3">รหัสพนักงาน</th>
+                            <th class="px-4 py-3">ชื่อ-นามสกุล</th>
+                            <th class="px-4 py-3 text-center">สิทธิ์</th>
+                            <th class="px-4 py-3 text-center">สถานะ</th>
+                            <th class="px-4 py-3 text-center">การจัดการ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="users-table-body" class="divide-y divide-gray-200 dark:divide-gray-700">
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-xs text-gray-400 mt-2">* ผู้ช่วย Admin สามารถจัดการสต็อกและยืนยันการคืนได้ แต่ไม่สามารถจัดการผู้ใช้งานได้</p>
+        </div>
       </main>
     </div>
 
+    <!-- Borrow Modal -->
     <div
       id="borrow-modal"
       class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 hidden backdrop-blur-sm p-4"
@@ -746,7 +807,8 @@
             id="borrow-img-preview"
             src=""
             referrerpolicy="no-referrer"
-            class="w-20 h-20 rounded-lg object-cover bg-gray-100"
+            class="w-20 h-20 rounded-lg object-cover bg-gray-100 cursor-pointer hover:opacity-80 transition"
+            onclick="openImageModal(this.src)"
             onerror="handleImageError(this)"
           />
           <div>
@@ -803,6 +865,7 @@
       </div>
     </div>
 
+    <!-- Edit Item Modal -->
     <div
       id="item-modal"
       class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 hidden backdrop-blur-sm p-4"
@@ -948,6 +1011,7 @@
         doc,
         getDocs,
         getDoc,
+        setDoc,
         addDoc,
         updateDoc,
         deleteDoc,
@@ -957,7 +1021,6 @@
         runTransaction,
         writeBatch,
       } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
-      // REMOVED: firebase-app-check imports
 
       // --- FIREBASE CONFIGURATION ---
       const firebaseConfig = {
@@ -973,10 +1036,8 @@
       let app, db;
       try {
         app = initializeApp(firebaseConfig);
-        // REMOVED: App Check initialization
-        
         db = getFirestore(app);
-        console.log("Firebase Connected (No AppCheck)");
+        console.log("Firebase Connected");
       } catch (e) {
         console.error("Firebase Init Error:", e);
       }
@@ -985,15 +1046,38 @@
       window.currentUser = null;
       window.inventoryData = [];
       window.transactionLogs = [];
+      window.usersData = [];
       window.currentBorrowItemId = null;
 
       let isSaving = false;
-      let lastUserActionTime = 0;
 
       // --- EXPORT FUNCTIONS ---
       window.switchTab = switchTab;
       window.closeModal = (id) =>
         document.getElementById(id).classList.add("hidden");
+      
+      // Lightbox Functions
+      window.openImageModal = (src) => {
+          if (!src || src.includes('placehold.co')) return;
+          const modal = document.getElementById('image-modal');
+          const img = document.getElementById('image-modal-content');
+          img.src = src;
+          modal.classList.remove('hidden');
+          setTimeout(() => {
+              img.classList.remove('scale-95');
+          }, 10);
+      };
+
+      window.closeImageModal = () => {
+          const modal = document.getElementById('image-modal');
+          const img = document.getElementById('image-modal-content');
+          img.classList.add('scale-95');
+          setTimeout(() => {
+              modal.classList.add('hidden');
+              img.src = '';
+          }, 200);
+      };
+
       window.toggleTheme = toggleTheme;
       window.adjustQty = (n) => {
         const el = document.getElementById("borrow-qty");
@@ -1022,46 +1106,136 @@
         const inputName = document.getElementById("login-name").value.trim();
         if (!inputId) return;
 
-        // CHANGED: Use Swal instead of overlay
         window.showLoading("กำลังเข้าสู่ระบบ...");
 
         try {
+          // 1. Fetch IP Address (if possible)
+          let ipAddress = 'Unknown';
+          try {
+             const ipRes = await fetch('https://api.ipify.org?format=json');
+             if(ipRes.ok) {
+                 const ipJson = await ipRes.json();
+                 ipAddress = ipJson.ip;
+             }
+          } catch(err) {
+             console.log("Could not fetch IP:", err);
+          }
+
+          const userAgent = navigator.userAgent;
+
+          // --- SECURITY CHECK (Device Ban) ---
+          // Fetch ALL users that are BLOCKED
+          const blockedUsersQuery = query(collection(db, "users"), where("isBlocked", "==", true));
+          const blockedUsersSnap = await getDocs(blockedUsersQuery);
+          
+          let isDeviceBanned = false;
+          
+          if (!blockedUsersSnap.empty) {
+              blockedUsersSnap.forEach(doc => {
+                  const data = doc.data();
+                  // Check if this blocked user has the same IP or UserAgent as current attempt
+                  // Note: IP check is strict. UserAgent is strict.
+                  // We ignore 'Unknown' IPs to avoid false positives on failed IP fetch.
+                  if (data.lastLoginIp && data.lastLoginIp !== 'Unknown' && data.lastLoginIp === ipAddress) {
+                      isDeviceBanned = true;
+                  }
+                  if (data.userAgent && data.userAgent === userAgent) {
+                      // Optional: UserAgent check might be too broad if generic (e.g. "Mozilla/5.0..."), 
+                      // but user requested to check userAgent. 
+                      isDeviceBanned = true;
+                  }
+              });
+          }
+
+          if (isDeviceBanned) {
+              window.hideLoading();
+              Swal.fire({
+                  icon: 'error',
+                  title: 'การเข้าถึงถูกปฏิเสธ',
+                  text: 'อุปกรณ์หรือเครือข่ายของคุณถูกระงับการใช้งานเนื่องจากมีความเกี่ยวข้องกับบัญชีที่ถูกบล็อค',
+                  footer: 'กรุณาติดต่อผู้ดูแลระบบ',
+                  allowOutsideClick: false
+              });
+              return; // STOP LOGIN
+          }
+          // -----------------------------------
+
+          // 2. Check Database for User
           const q = query(
             collection(db, "users"),
             where("empId", "==", inputId),
           );
           const querySnapshot = await getDocs(q);
 
+          let userData = null;
+          let userDocId = null;
+
           if (!querySnapshot.empty) {
-            const userData = querySnapshot.docs[0].data();
-            const user = {
-              empId: userData.empId,
-              name: userData.name,
-              isAdmin: userData.role === "admin",
-            };
-            localStorage.setItem("ems_user_fb", JSON.stringify(user));
-            initApp(user);
+            // Existing user
+            const userDoc = querySnapshot.docs[0];
+            userData = userDoc.data();
+            userDocId = userDoc.id;
+
+            // Check if this specific account is blocked
+            if (userData.isBlocked) {
+                window.hideLoading();
+                Swal.fire({
+                    icon: 'error',
+                    title: 'บัญชีถูกระงับ',
+                    text: 'กรุณาติดต่อผู้ดูแลระบบ (Admin)',
+                    confirmButtonText: 'รับทราบ'
+                });
+                return;
+            }
+
+            // Update info (Including IP and Device)
+            await setDoc(doc(db, "users", userDocId), {
+                name: inputName || userData.name, 
+                lastLogin: new Date().toISOString(),
+                lastLoginIp: ipAddress, // Save IP
+                userAgent: userAgent    // Save Device Info
+            }, { merge: true });
+
+            // Refresh user data after update
+            userData.name = inputName || userData.name;
+
           } else {
+            // New user
             const newUser = {
               empId: inputId,
               name: inputName || `User ${inputId}`,
               role: inputId === "9999" ? "admin" : "user",
+              createdAt: new Date().toISOString(),
+              lastLogin: new Date().toISOString(),
+              lastLoginIp: ipAddress, // Save IP
+              userAgent: userAgent,   // Save Device Info
+              isBlocked: false
             };
-            try {
-              await addDoc(collection(db, "users"), newUser);
-            } catch (err) {
-              console.warn("Auto-register failed:", err);
-            }
-            const user = { ...newUser, isAdmin: newUser.role === "admin" };
-            localStorage.setItem("ems_user_fb", JSON.stringify(user));
-            initApp(user);
+            
+            const docRef = await addDoc(collection(db, "users"), newUser);
+            userData = newUser;
+            userDocId = docRef.id;
           }
-          window.hideLoading(); // Close Swal
+
+          const user = {
+            docId: userDocId,
+            empId: userData.empId,
+            name: userData.name,
+            role: userData.role || 'user', // Default to user if undefined
+            isBlocked: userData.isBlocked || false
+          };
+
+          localStorage.setItem("ems_user_fb", JSON.stringify(user));
+          window.hideLoading();
+          initApp(user);
+          
         } catch (err) {
           console.error(err);
-          Swal.fire("Login Error", "ตรวจสอบ Config Firebase", "error");
+          window.hideLoading();
+          Swal.fire("Login Error", "ตรวจสอบการเชื่อมต่ออินเทอร์เน็ต", "error");
         }
       };
+      
       document
         .getElementById("login-form")
         .addEventListener("submit", window.login);
@@ -1071,22 +1245,48 @@
         location.reload();
       };
 
-      function initApp(user) {
+      async function initApp(user) {
+        // Double check blocked status from local storage immediately (optimization)
+        if (user.isBlocked) {
+             Swal.fire({
+                icon: 'error',
+                title: 'บัญชีถูกระงับ',
+                text: 'กรุณาติดต่อผู้ดูแลระบบ',
+                allowOutsideClick: false,
+                confirmButtonText: 'ออกจากระบบ'
+            }).then(() => {
+                window.logout();
+            });
+            return;
+        }
+
         window.currentUser = user;
         document.getElementById("user-display-name").innerText = user.name;
-        document.getElementById("user-display-role").innerText = user.isAdmin
-          ? "Admin"
-          : "User";
+        
+        // Display Role Text
+        let roleText = "User";
+        if (user.role === 'admin') roleText = "Admin";
+        else if (user.role === 'assistant') roleText = "ผู้ช่วย Admin";
+        
+        document.getElementById("user-display-role").innerText = roleText;
+
         const mobileName = document.getElementById("mobile-user-name");
         if (mobileName) mobileName.innerText = user.name;
         const mobileRole = document.getElementById("mobile-user-role");
-        if (mobileRole) mobileRole.innerText = user.isAdmin ? "Admin" : "User";
+        if (mobileRole) mobileRole.innerText = roleText;
 
         const adminTab = document.getElementById("tab-admin");
         const verifyTab = document.getElementById("tab-verify");
+        const usersTab = document.getElementById("tab-users");
         const dashboardTab = document.getElementById("tab-dashboard");
 
-        if (user.isAdmin) {
+        // Role Permission Logic
+        const isSuperAdmin = user.role === 'admin';
+        const isAssistant = user.role === 'assistant';
+        const canManageStock = isSuperAdmin || isAssistant;
+
+        // Inventory & Dashboard & Verify -> Admin OR Assistant
+        if (canManageStock) {
           adminTab.classList.remove("hidden");
           verifyTab.classList.remove("hidden");
           dashboardTab.classList.remove("hidden");
@@ -1094,6 +1294,13 @@
           adminTab.classList.add("hidden");
           verifyTab.classList.add("hidden");
           dashboardTab.classList.add("hidden");
+        }
+
+        // Users Management -> Admin ONLY
+        if (isSuperAdmin) {
+            usersTab.classList.remove("hidden");
+        } else {
+            usersTab.classList.add("hidden");
         }
 
         document.getElementById("login-screen").classList.add("hidden");
@@ -1108,16 +1315,16 @@
       function renderSkeleton() {
         const grid = document.getElementById("inventory-grid");
         grid.innerHTML = "";
-        // สร้าง Card Skeleton จำลอง 8-10 อัน
         for(let i=0; i<10; i++) {
+            // Updated skeleton to match new responsive layout
             grid.innerHTML += `
-                <div class="bg-white dark:bg-dark-card rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col h-full animate-pulse overflow-hidden">
-                    <div class="h-40 bg-gray-200 dark:bg-gray-700 w-full"></div>
-                    <div class="p-4 flex flex-col flex-1">
+                <div class="bg-white dark:bg-dark-card rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 flex flex-row md:flex-col h-auto md:h-full animate-pulse overflow-hidden">
+                    <div class="w-1/3 md:w-full h-auto md:h-40 bg-gray-200 dark:bg-gray-700"></div>
+                    <div class="p-4 flex flex-col flex-1 w-2/3 md:w-full">
                         <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/3 mb-2"></div>
                         <div class="h-5 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-4"></div>
                         <div class="flex-1"></div>
-                        <div class="h-10 bg-gray-200 dark:bg-gray-700 rounded-xl w-full mt-4"></div>
+                        <div class="h-8 md:h-10 bg-gray-200 dark:bg-gray-700 rounded-xl w-full mt-2 md:mt-4"></div>
                     </div>
                 </div>
             `;
@@ -1126,19 +1333,24 @@
 
       // --- REALTIME LISTENERS ---
       function startRealtimeListeners() {
+        const role = window.currentUser.role;
+        const canManage = role === 'admin' || role === 'assistant';
+
+        // 1. Inventory Listener
         onSnapshot(collection(db, "inventory"), (snapshot) => {
           window.inventoryData = snapshot.docs.map((doc) => ({
             id: doc.id,
             ...doc.data(),
           }));
           renderInventory();
-          if (window.currentUser.isAdmin) {
+          if (canManage) {
             renderAdminTable();
             renderDashboard();
           }
           populateCategories();
         });
 
+        // 2. Logs Listener
         onSnapshot(collection(db, "logs"), (snapshot) => {
           window.transactionLogs = snapshot.docs.map((doc) => ({
             id: doc.id,
@@ -1146,11 +1358,54 @@
           }));
           renderHistory();
           renderMyItems();
-          if (window.currentUser.isAdmin) {
+          if (canManage) {
             renderVerify();
             renderDashboard();
           }
         });
+
+        // 3. User Self Listener (To check if blocked in realtime)
+        if (window.currentUser.docId) { 
+             onSnapshot(doc(db, "users", window.currentUser.docId), (docSnap) => {
+                 if (docSnap.exists()) {
+                     const newData = docSnap.data();
+                     if (newData.isBlocked) {
+                         Swal.fire({
+                             icon: 'error',
+                             title: 'บัญชีของคุณถูกระงับ',
+                             text: 'กรุณาติดต่อผู้ดูแลระบบ',
+                             allowOutsideClick: false,
+                             confirmButtonText: 'ตกลง'
+                         }).then(() => {
+                             window.logout();
+                         });
+                     }
+                 } else {
+                     // Account deleted by Admin
+                     Swal.fire({
+                         icon: 'error',
+                         title: 'บัญชีของคุณถูกลบ',
+                         text: 'ไม่พบข้อมูลบัญชีของคุณในระบบ',
+                         allowOutsideClick: false,
+                         confirmButtonText: 'ตกลง'
+                     }).then(() => {
+                         window.logout();
+                     });
+                 }
+             });
+        }
+
+        // 4. Users List Listener (Admin Only) - Assistant cannot see this
+        if (role === 'admin') {
+            onSnapshot(collection(db, "users"), (snapshot) => {
+                window.usersData = snapshot.docs.map((doc) => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+                renderUsers();
+                renderDashboard();
+            });
+        }
       }
 
       // --- DASHBOARD LOGIC ---
@@ -1158,7 +1413,10 @@
       let itemsChartInstance = null;
 
       function renderDashboard() {
-        if (!window.currentUser.isAdmin) return;
+        const role = window.currentUser.role;
+        // Only Admin and Assistant can see dashboard data
+        if (role !== 'admin' && role !== 'assistant') return;
+
         const totalItems = window.inventoryData.reduce(
           (sum, i) => sum + i.stock,
           0,
@@ -1167,14 +1425,19 @@
         const activeBorrows = window.transactionLogs.filter(
           (l) => l.status === "borrowed",
         ).length;
-        const uniqueUsers = new Set(window.transactionLogs.map((l) => l.empId))
-          .size;
+        
+        // Assistant can see count but might not have access to full user data array if we restricted listener
+        // But for dashboard numbers, we can just show what we have.
+        // If assistant doesn't listen to 'users' collection, usersCount might be 0. That's fine or we can let them listen but not see the table.
+        // To fix dashboard numbers for assistant, we might need to let them listen to users but not render the edit table.
+        // For simplicity, let's say Assistants don't see exact User Count if they don't have permission, or it shows 0.
+        const usersCount = window.usersData.length || "-"; 
 
         document.getElementById("stat-total-items").innerText = totalItems;
         document.getElementById("stat-total-logs").innerText = totalLogs;
         document.getElementById("stat-active-borrows").innerText =
           activeBorrows;
-        document.getElementById("stat-users-count").innerText = uniqueUsers;
+        document.getElementById("stat-users-count").innerText = usersCount;
 
         const userCounts = {};
         const itemCounts = {};
@@ -1277,8 +1540,14 @@
         window.currentBorrowItemId = id;
         document.getElementById("borrow-item-name").innerText = item.name;
         document.getElementById("borrow-item-max").innerText = item.remaining;
-        document.getElementById("borrow-img-preview").src =
-          item.image || "https://placehold.co/100";
+        
+        const imgPreview = document.getElementById("borrow-img-preview");
+        imgPreview.src = item.image || "https://placehold.co/100";
+        // Reset onclick handler with new src
+        imgPreview.onclick = function() {
+            window.openImageModal(this.src);
+        };
+        
         document.getElementById("borrow-qty").max = item.remaining;
         document.getElementById("borrow-qty").value = 1;
         document.getElementById("borrow-modal").classList.remove("hidden");
@@ -1474,6 +1743,110 @@
         }
       };
 
+      // --- USER MANAGEMENT (ADMIN) ---
+      window.changeUserRole = async (userId, selectElement) => {
+          const newRole = selectElement.value;
+          try {
+             await updateDoc(doc(db, "users", userId), { role: newRole });
+             Swal.fire({
+                 icon: 'success',
+                 title: 'เปลี่ยนสิทธิ์สำเร็จ',
+                 toast: true,
+                 position: 'top-end',
+                 timer: 2000,
+                 showConfirmButton: false
+             });
+          } catch(e) {
+             Swal.fire('Error', e.message, 'error');
+             // Revert select on error
+             // (Complex to revert accurately without previous state, but user can just try again)
+          }
+      }
+
+      window.toggleUserBlock = async (userId, currentBlockStatus) => {
+          const newStatus = !currentBlockStatus;
+          const actionText = newStatus ? "ระงับ (Block)" : "ปลดบล็อค";
+          const result = await Swal.fire({
+              title: `${actionText}?`,
+              text: newStatus ? "ผู้ใช้จะไม่สามารถเข้าสู่ระบบได้" : "ผู้ใช้จะสามารถเข้าใช้งานได้ตามปกติ",
+              icon: 'warning',
+              showCancelButton: true,
+              confirmButtonText: actionText,
+              confirmButtonColor: newStatus ? '#ef4444' : '#22c55e'
+          });
+          
+          if(result.isConfirmed) {
+              try {
+                  await updateDoc(doc(db, "users", userId), { isBlocked: newStatus });
+                  Swal.fire({
+                     icon: 'success',
+                     title: 'ดำเนินการเรียบร้อย',
+                     toast: true,
+                     position: 'top-end',
+                     timer: 2000,
+                     showConfirmButton: false
+                 });
+              } catch(e) {
+                  Swal.fire('Error', e.message, 'error');
+              }
+          }
+      }
+
+      window.showDeviceInfo = (name, ip, agent, lastLogin) => {
+          Swal.fire({
+              title: 'ข้อมูลการใช้งานล่าสุด',
+              html: `
+                  <div class="text-left text-sm space-y-3 p-2">
+                      <div>
+                          <p class="text-gray-500 font-bold text-xs uppercase">ผู้ใช้งาน</p>
+                          <p class="text-gray-800 dark:text-gray-200">${name}</p>
+                      </div>
+                      <div>
+                          <p class="text-gray-500 font-bold text-xs uppercase">เวลาเข้าสู่ระบบล่าสุด</p>
+                          <p class="text-gray-800 dark:text-gray-200">${new Date(lastLogin).toLocaleString('th-TH')}</p>
+                      </div>
+                      <div>
+                          <p class="text-gray-500 font-bold text-xs uppercase">IP Address</p>
+                          <p class="font-mono bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded inline-block">${ip || 'Unknown'}</p>
+                      </div>
+                      <div>
+                          <p class="text-gray-500 font-bold text-xs uppercase">Browser / Device</p>
+                          <p class="text-xs text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700 rounded p-2 bg-gray-50 dark:bg-gray-800 mt-1">${agent || 'Unknown'}</p>
+                      </div>
+                  </div>
+              `,
+              confirmButtonText: 'ปิด'
+          });
+      }
+
+      window.deleteUser = async (userId) => {
+        const result = await Swal.fire({
+            title: 'ลบผู้ใช้งาน?',
+            text: 'คำเตือน: การลบผู้ใช้งานอาจทำให้ประวัติการยืมคืนในอดีตของผู้ใช้นี้อ้างอิงไม่ถูกต้อง หากต้องการระงับการใช้งาน แนะนำให้ใช้ปุ่ม "Block" แทน',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            confirmButtonText: 'ยืนยันลบถาวร',
+            cancelButtonText: 'ยกเลิก'
+        });
+
+        if (result.isConfirmed) {
+            try {
+                await deleteDoc(doc(db, "users", userId));
+                Swal.fire({
+                     icon: 'success',
+                     title: 'ลบผู้ใช้งานเรียบร้อย',
+                     toast: true,
+                     position: 'top-end',
+                     timer: 2000,
+                     showConfirmButton: false
+                 });
+            } catch(e) {
+                Swal.fire('Error', 'ไม่สามารถลบได้: ' + e.message, 'error');
+            }
+        }
+      }
+
       // --- GAS UPLOAD HELPER ---
       async function uploadImageToGAS(base64Data, fileName) {
         if (!base64Data || !base64Data.startsWith("data:image")) {
@@ -1506,7 +1879,6 @@
         .addEventListener("submit", async (e) => {
           e.preventDefault();
           
-          // CHANGED: Use Swal instead of overlay
           window.showLoading("กำลังบันทึกข้อมูล...");
 
           const id = document.getElementById("item-id").value;
@@ -1522,12 +1894,9 @@
           try {
             if (sourceType === "file") {
               const base64 = document.getElementById("item-image-temp-base64").value;
-              // ตรวจสอบว่ามีการเลือกไฟล์ใหม่ (Base64) หรือไม่
               if (base64 && base64.startsWith("data:image")) {
-                // อัปโหลดไฟล์ไปที่ GAS ก่อนบันทึกลง Firestore
                 image = await uploadImageToGAS(base64, `${name}_${Date.now()}.jpg`);
               } else {
-                // ถ้าไม่มีการเลือกไฟล์ใหม่ ให้ใช้รูปเดิมที่เคยมีอยู่ (ซึ่งอาจจะเป็น URL จาก Drive)
                 image = document.getElementById("item-image-preview").src;
               }
             } else {
@@ -1535,7 +1904,6 @@
               image = window.formatGoogleDriveLink(url);
             }
             
-            // ป้องกันรูปว่าง
             if (!image || image.includes("placehold.co") || image === "") {
                image = "https://placehold.co/300x200?text=No+Image";
             }
@@ -1603,7 +1971,7 @@
         document.getElementById("item-name").value = item.name;
         document.getElementById("item-category").value = item.category;
         document.getElementById("item-stock").value = item.stock;
-        document.getElementById("item-image-temp-base64").value = ""; // เคลียร์ไฟล์เก่า
+        document.getElementById("item-image-temp-base64").value = ""; 
 
         const isUrl =
           item.image &&
@@ -1636,13 +2004,10 @@
         });
 
         if (result.isConfirmed) {
-          // CHANGED: Use Swal instead of overlay
           window.showLoading("กำลังลบข้อมูล...");
           
           try {
-            // 1. ตรวจสอบและลบไฟล์ใน Google Drive ผ่าน GAS
             if (item && item.image && (item.image.includes("drive.google.com") || item.image.includes("googleusercontent.com/d/"))) {
-              // ดึง File ID จาก URL
               const fileId = item.image.match(/id=([-\w]{25,})|d\/([-\w]{25,})/);
               const actualFileId = fileId ? (fileId[1] || fileId[2]) : null;
 
@@ -1656,11 +2021,9 @@
                     fileId: actualFileId
                   })
                 });
-                console.log("Drive file deleted:", actualFileId);
               }
             }
 
-            // 2. ลบข้อมูลใน Firestore
             await deleteDoc(doc(db, "inventory", id));
 
             Swal.fire({
@@ -1689,26 +2052,35 @@
           const matchCat = catFilter ? i.category === catFilter : true;
           return matchName && matchCat;
         });
+        
         items.forEach((item) => {
           const isOut = item.remaining <= 0;
+          
           const cardClass = isOut
-            ? "bg-white dark:bg-dark-card rounded-2xl border border-gray-100 dark:border-gray-700 flex flex-col h-full overflow-hidden opacity-60"
-            : "bg-white dark:bg-dark-card rounded-2xl shadow-sm hover:shadow-md transition border border-gray-100 dark:border-gray-700 flex flex-col h-full group overflow-hidden";
+            ? "bg-white dark:bg-dark-card rounded-2xl border border-gray-100 dark:border-gray-700 flex flex-row md:flex-col h-auto md:h-full overflow-hidden opacity-60"
+            : "bg-white dark:bg-dark-card rounded-2xl shadow-sm hover:shadow-md transition border border-gray-100 dark:border-gray-700 flex flex-row md:flex-col h-auto md:h-full group overflow-hidden";
 
           grid.innerHTML += `
                     <div class="${cardClass}">
-                        <div class="h-40 overflow-hidden relative bg-gray-100 dark:bg-gray-800">
-                            <img src="${item.image}" referrerpolicy="no-referrer" class="w-full h-full object-cover ${isOut ? "" : "group-hover:scale-105 transition duration-500"}" onerror="handleImageError(this)">
-                            <span class="absolute top-2 right-2 px-2 py-1 text-xs font-bold rounded-full ${isOut ? "bg-red-500 text-white" : "bg-green-500 text-white"} shadow-sm">
+                        <div class="w-1/3 md:w-full h-auto md:h-40 overflow-hidden relative bg-gray-100 dark:bg-gray-800 min-h-[120px] md:min-h-0">
+                            <img 
+                                src="${item.image}" 
+                                referrerpolicy="no-referrer" 
+                                class="w-full h-full object-cover cursor-pointer hover:opacity-90 transition ${isOut ? "" : "group-hover:scale-105 duration-500"}" 
+                                onclick="event.stopPropagation(); window.openImageModal('${item.image}')"
+                                onerror="handleImageError(this)"
+                            >
+                            <span class="absolute top-2 right-2 px-2 py-1 text-xs font-bold rounded-full ${isOut ? "bg-red-500 text-white" : "bg-green-500 text-white"} shadow-sm text-[10px] md:text-xs pointer-events-none">
                                 ${isOut ? "หมด" : `ว่าง ${item.remaining}`}
                             </span>
                         </div>
-                        <div class="p-4 flex flex-col flex-1">
-                            <div class="text-xs text-gray-400 mb-1">${item.category || "ทั่วไป"}</div>
-                            <h3 class="font-bold text-gray-800 dark:text-gray-100 text-lg mb-1 leading-snug line-clamp-2">${item.name}</h3>
-                            <div class="flex-1"></div>
-                            <button onclick="openBorrowModal('${item.id}')" ${isOut ? "disabled" : ""} class="mt-4 w-full py-2.5 rounded-xl font-medium transition flex items-center justify-center gap-2 ${isOut ? "bg-gray-100 text-gray-400 cursor-not-allowed" : "bg-primary-600 text-white hover:bg-primary-700 shadow-lg"}">
-                                ${isOut ? "ของหมด" : "ยืมรายการนี้"}
+                        <div class="p-3 md:p-4 flex flex-col flex-1 w-2/3 md:w-full justify-between">
+                            <div>
+                                <div class="text-[10px] md:text-xs text-gray-400 mb-1">${item.category || "ทั่วไป"}</div>
+                                <h3 class="font-bold text-gray-800 dark:text-gray-100 text-base md:text-lg mb-1 leading-snug line-clamp-2">${item.name}</h3>
+                            </div>
+                            <button onclick="openBorrowModal('${item.id}')" ${isOut ? "disabled" : ""} class="mt-2 md:mt-4 w-full py-1.5 md:py-2.5 rounded-lg md:rounded-xl font-medium transition flex items-center justify-center gap-2 text-xs md:text-sm ${isOut ? "bg-gray-100 text-gray-400 cursor-not-allowed" : "bg-primary-600 text-white hover:bg-primary-700 shadow"}">
+                                ${isOut ? "ของหมด" : "ยืม"}
                             </button>
                         </div>
                     </div>`;
@@ -1736,14 +2108,19 @@
         document
           .getElementById("my-items-pending-empty")
           .classList.toggle("hidden", pending.length > 0);
-
-        if (active.length > 0) {
+        
+        const totalBadgeCount = active.length + pending.length;
+        if (totalBadgeCount > 0) {
           badge.classList.remove("hidden");
-          badge.innerText = active.length;
-          returnAllBtn.classList.remove("hidden");
+          badge.innerText = totalBadgeCount;
         } else {
           badge.classList.add("hidden");
-          returnAllBtn.classList.add("hidden");
+        }
+        
+        if (active.length > 0) {
+            returnAllBtn.classList.remove("hidden");
+        } else {
+            returnAllBtn.classList.add("hidden");
         }
 
         const createCard = (log, isActive) => {
@@ -1815,9 +2192,11 @@
         const thead = document.getElementById("history-table-head");
         const tbody = document.getElementById("history-table-body");
         tbody.innerHTML = "";
+        
+        const canManage = window.currentUser.role === 'admin' || window.currentUser.role === 'assistant';
 
         let headerHtml = "";
-        if (window.currentUser.isAdmin) {
+        if (canManage) {
           headerHtml += `<th class="px-4 py-3 w-10 text-center"><input type="checkbox" onchange="toggleSelectAll(this)" class="rounded text-primary-600 focus:ring-primary-500 cursor-pointer"></th>`;
         }
         headerHtml += `
@@ -1831,13 +2210,13 @@
         thead.innerHTML = `<tr>${headerHtml}</tr>`;
 
         let logs = window.transactionLogs;
-        if (!window.currentUser.isAdmin)
+        if (!canManage)
           logs = logs.filter((l) => l.empId == window.currentUser.empId);
         logs.sort((a, b) => new Date(b.borrowDate) - new Date(a.borrowDate));
 
         const bulkBtn = document.getElementById("btn-bulk-delete");
         if (bulkBtn)
-          bulkBtn.classList.toggle("hidden", !window.currentUser.isAdmin);
+          bulkBtn.classList.toggle("hidden", !canManage);
 
         logs.forEach((log) => {
           const status =
@@ -1861,7 +2240,7 @@
           let checkCell = "";
           let deleteBtn = "";
 
-          if (window.currentUser.isAdmin) {
+          if (canManage) {
             checkCell = `<td class="px-4 py-3 text-center"><input type="checkbox" class="log-checkbox rounded text-primary-600 focus:ring-primary-500 cursor-pointer" value="${log.id}"></td>`;
             deleteBtn = `<button onclick="deleteLog('${log.id}')" class="text-red-400 hover:text-red-600 ml-2" title="ลบประวัติ"><i class="fas fa-trash-alt"></i></button>`;
           }
@@ -1889,7 +2268,6 @@
         const tbody = document.getElementById("admin-table-body");
         tbody.innerHTML = "";
         
-        // ADDED: Filter logic
         const catFilter = document.getElementById("admin-filter-category").value;
         
         const items = window.inventoryData.filter(i => {
@@ -1900,7 +2278,15 @@
         items.forEach((item) => {
           tbody.innerHTML += `
                     <tr class="bg-white border-b dark:bg-dark-card dark:border-gray-700">
-                        <td class="px-4 py-3 text-center"><img src="${item.image}" referrerpolicy="no-referrer" class="w-10 h-10 rounded object-cover mx-auto" onerror="handleImageError(this)"></td>
+                        <td class="px-4 py-3 text-center">
+                            <img 
+                                src="${item.image}" 
+                                referrerpolicy="no-referrer" 
+                                class="w-10 h-10 rounded object-cover mx-auto cursor-pointer hover:opacity-80 transition" 
+                                onclick="window.openImageModal('${item.image}')"
+                                onerror="handleImageError(this)"
+                            >
+                        </td>
                         <td class="px-4 py-3">${item.name}</td>
                         <td class="px-4 py-3">${item.category}</td>
                         <td class="px-4 py-3 text-center">${item.remaining}/${item.stock}</td>
@@ -1912,17 +2298,71 @@
         });
       }
 
+      function renderUsers() {
+          const tbody = document.getElementById("users-table-body");
+          tbody.innerHTML = "";
+          
+          window.usersData.forEach(user => {
+              const isBlocked = user.isBlocked === true;
+              
+              // Status Badge
+              const statusBadge = isBlocked
+                ? '<span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full font-bold">ถูกระงับ</span>'
+                : '<span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">ปกติ</span>';
+
+              // Role Selector
+              let roleSelect = '';
+              if (user.id === window.currentUser.docId) {
+                  roleSelect = '<span class="text-gray-400 text-xs">คุณ (Admin)</span>';
+              } else {
+                  roleSelect = `
+                    <select onchange="changeUserRole('${user.id}', this)" class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white">
+                        <option value="user" ${user.role === 'user' || !user.role ? 'selected' : ''}>User</option>
+                        <option value="assistant" ${user.role === 'assistant' ? 'selected' : ''}>ผู้ช่วย Admin</option>
+                        <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Admin</option>
+                    </select>
+                  `;
+              }
+
+              // Actions
+              const toggleBlockBtn = isBlocked
+                ? `<button onclick="toggleUserBlock('${user.id}', true)" class="text-green-600 hover:text-green-800" title="ปลดบล็อค"><i class="fas fa-unlock"></i></button>`
+                : `<button onclick="toggleUserBlock('${user.id}', false)" class="text-red-400 hover:text-red-600" title="ระงับการใช้งาน"><i class="fas fa-ban"></i></button>`;
+
+              const infoBtn = `<button onclick="showDeviceInfo('${user.name}', '${user.lastLoginIp || ''}', '${user.userAgent || ''}', '${user.lastLogin || ''}')" class="text-blue-500 hover:text-blue-700" title="ดูข้อมูลอุปกรณ์"><i class="fas fa-info-circle"></i></button>`;
+              
+              const deleteBtn = `<button onclick="deleteUser('${user.id}')" class="text-gray-400 hover:text-red-600" title="ลบ User"><i class="fas fa-trash"></i></button>`;
+
+              const isSelf = user.id === window.currentUser.docId;
+              const actions = isSelf 
+                ? '' 
+                : `<div class="flex gap-3 justify-center text-base">${infoBtn} ${toggleBlockBtn} ${deleteBtn}</div>`;
+
+              tbody.innerHTML += `
+                  <tr class="bg-white border-b dark:bg-dark-card dark:border-gray-700">
+                      <td class="px-4 py-3">${user.empId}</td>
+                      <td class="px-4 py-3">
+                          <div class="font-medium">${user.name}</div>
+                          <div class="text-[10px] text-gray-400">Login: ${new Date(user.lastLogin).toLocaleDateString('th-TH')}</div>
+                      </td>
+                      <td class="px-4 py-3 text-center min-w-[120px]">${roleSelect}</td>
+                      <td class="px-4 py-3 text-center">${statusBadge}</td>
+                      <td class="px-4 py-3 text-center">${actions}</td>
+                  </tr>
+              `;
+          });
+      }
+
       function populateCategories() {
         const select = document.getElementById("filter-category");
         const adminSelect = document.getElementById("admin-filter-category");
         const dl = document.getElementById("category-list");
         
-        // เก็บค่าเดิมไว้ก่อน
         const currentAdminVal = adminSelect.value;
         const currentVal = select.value;
 
         select.innerHTML = '<option value="">ทุกหมวดหมู่</option>';
-        adminSelect.innerHTML = '<option value="">ทุกหมวดหมู่</option>'; // Init admin select
+        adminSelect.innerHTML = '<option value="">ทุกหมวดหมู่</option>'; 
         dl.innerHTML = "";
         
         const cats = [
@@ -1932,11 +2372,10 @@
         ];
         cats.forEach((c) => {
           select.innerHTML += `<option value="${c}">${c}</option>`;
-          adminSelect.innerHTML += `<option value="${c}">${c}</option>`; // Populate admin select
+          adminSelect.innerHTML += `<option value="${c}">${c}</option>`;
           dl.innerHTML += `<option value="${c}">`;
         });
 
-        // คืนค่าเดิม
         select.value = currentVal;
         adminSelect.value = currentAdminVal;
       }
@@ -1969,7 +2408,6 @@
               canvas.height = h;
               const ctx = canvas.getContext("2d");
               ctx.drawImage(img, 0, 0, w, h);
-              // ใช้ 0.7 เพื่อรักษาความชัดเจนในระดับที่พอดูออก
               resolve(canvas.toDataURL("image/jpeg", 0.7));
             };
             img.src = e.target.result;
@@ -1984,7 +2422,6 @@
           if (e.target.files[0]) {
             const base64 = await resizeImage(e.target.files[0]);
             document.getElementById("item-image-preview").src = base64;
-            // เก็บ Base64 ไว้ส่งไป GAS
             document.getElementById("item-image-temp-base64").value = base64;
           }
         });
@@ -2000,52 +2437,34 @@
             "bg-yellow-50",
             "text-yellow-600",
             "dark:text-yellow-400",
+            "bg-indigo-50",
+            "text-indigo-600",
+            "dark:text-indigo-400",
+            "bg-purple-50",
+            "text-purple-600",
+            "dark:text-purple-400",
+            "bg-pink-50",
+            "text-pink-600",
+            "dark:text-pink-400"
           );
-          if (b.id === "tab-verify") {
-            b.classList.remove(
-              "text-yellow-600",
-              "dark:text-yellow-400",
-              "bg-yellow-50",
-              "dark:bg-yellow-900/20",
-            );
-          } else if (b.id === "tab-dashboard") {
-            b.classList.remove(
-              "text-indigo-600",
-              "dark:text-indigo-400",
-              "bg-indigo-50",
-              "dark:bg-indigo-900/20",
-            );
-          }
+        
           b.classList.add("text-gray-500", "dark:text-gray-400");
         });
 
         const btn = document.getElementById(`tab-${tab}`);
         btn.classList.remove("text-gray-500", "dark:text-gray-400");
 
-        if (tab === "verify")
-          btn.classList.add(
-            "active-tab",
-            "bg-yellow-50",
-            "text-yellow-600",
-            "dark:bg-yellow-900/30",
-            "dark:text-yellow-400",
-          );
-        else if (tab === "dashboard")
-          btn.classList.add(
-            "active-tab",
-            "bg-indigo-50",
-            "text-indigo-600",
-            "dark:bg-indigo-900/30",
-            "dark:text-indigo-400",
-          );
-        else
-          btn.classList.add(
-            "active-tab",
-            "bg-primary-50",
-            "text-primary-600",
-            "dark:bg-primary-900/30",
-            "dark:text-primary-400",
-          );
+        if (tab === "verify") {
+          btn.classList.add("active-tab", "bg-yellow-50", "text-yellow-600", "dark:bg-yellow-900/30", "dark:text-yellow-400");
+        } else if (tab === "dashboard") {
+          btn.classList.add("active-tab", "bg-indigo-50", "text-indigo-600", "dark:bg-indigo-900/30", "dark:text-indigo-400");
+        } else if (tab === "admin") {
+          btn.classList.add("active-tab", "bg-purple-50", "text-purple-600", "dark:bg-purple-900/20", "dark:text-purple-400");
+        } else if (tab === "users") {
+          btn.classList.add("active-tab", "bg-pink-50", "text-pink-600", "dark:bg-pink-900/20", "dark:text-pink-400");
+        } else {
+          btn.classList.add("active-tab", "bg-primary-50", "text-primary-600", "dark:bg-primary-900/30", "dark:text-primary-400");
+        }
 
         [
           "inventory",
@@ -2054,12 +2473,14 @@
           "history",
           "admin",
           "dashboard",
+          "users"
         ].forEach((v) => {
           document
             .getElementById(`view-${v}`)
             .classList.toggle("hidden", v !== tab);
         });
-
+        
+        if (tab === "users") renderUsers();
         if (tab === "my-items") renderMyItems();
         if (tab === "history") renderHistory();
         if (tab === "verify") renderVerify();
