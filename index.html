@@ -17,9 +17,7 @@
     />
 
     <script src="https://cdn.tailwindcss.com"></script>
-
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <link
@@ -92,13 +90,11 @@
         right: auto !important;
         bottom: auto !important;
       }
-      /* Chrome, Edge, Safari */
       .no-spinner::-webkit-inner-spin-button,
       .no-spinner::-webkit-outer-spin-button {
         -webkit-appearance: none;
         margin: 0;
       }
-      /* Firefox */
       .no-spinner {
         -moz-appearance: textfield;
       }
@@ -108,6 +104,9 @@
     class="bg-gray-100 text-gray-800 dark:bg-dark-bg dark:text-dark-text transition-colors duration-300 min-h-screen flex flex-col"
   >
     <script>
+      // ลิงก์ Google Apps Script สำหรับการอัปโหลดรูป
+      const GAS_API_URL = "https://script.google.com/macros/s/AKfycbw8ssHPXkmML0yMsKXP2Qr03K-zk-TlQiD-hPNVQmRqAUhOpnZMJhrYGGOARNsb2YM/exec";
+
       window.APP_CONFIG = {
         useGoogleSheets: false,
         adminId: "9999",
@@ -119,27 +118,37 @@
         },
       };
 
-      // --- IMAGE HANDLING (Simplified) ---
       window.handleImageError = (img) => {
-        // ตัดระบบเช็คซับซ้อนออก เหลือแค่กัน loop และใส่ภาพ default
         img.onerror = null;
         img.src = "https://placehold.co/300x200?text=No+Image";
       };
-    </script>
 
-    <div
-      id="loading-overlay"
-      class="fixed inset-0 z-[70] flex items-center justify-center bg-black/50 backdrop-blur-sm hidden"
-    >
-      <div
-        class="bg-white dark:bg-dark-card p-5 rounded-xl shadow-2xl flex flex-col items-center gap-3"
-      >
-        <i class="fas fa-circle-notch fa-spin text-primary-600 text-3xl"></i>
-        <span class="font-medium text-gray-700 dark:text-gray-200"
-          >กำลังโหลดข้อมูล...</span
-        >
-      </div>
-    </div>
+      window.formatGoogleDriveLink = (url) => {
+        if (!url) return "";
+        const idMatch = url.match(/[-\w]{25,}/);
+        if (idMatch && (url.includes('drive.google.com') || url.includes('docs.google.com'))) {
+          return `https://drive.google.com/thumbnail?id=${idMatch[0]}&sz=w800`;
+        }
+        return url;
+      };
+
+      // Helper สำหรับแสดง Loader ผ่าน SweetAlert2
+      window.showLoader = (title = "กำลังดำเนินการ...") => {
+        Swal.fire({
+          title: title,
+          allowOutsideClick: false,
+          allowEscapeKey: false,
+          showConfirmButton: false,
+          didOpen: () => {
+            Swal.showLoading();
+          },
+        });
+      };
+
+      window.hideLoader = () => {
+        Swal.close();
+      };
+    </script>
 
     <div
       id="saving-indicator"
@@ -834,7 +843,8 @@
                     วางลิงก์รูปภาพจากเว็บอื่น
                   </p>
                 </div>
-                <input type="hidden" id="item-image" />
+                <!-- ตัวแปรเก็บ Base64 ชั่วคราวเพื่อใช้ส่งไปยัง GAS -->
+                <input type="hidden" id="item-image-temp-base64" />
               </div>
             </div>
           </div>
@@ -906,6 +916,7 @@
       import {
         initializeAppCheck,
         ReCaptchaEnterpriseProvider,
+        getToken,
       } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app-check.js";
 
       // --- FIREBASE CONFIGURATION ---
@@ -919,41 +930,142 @@
       };
 
       // --- APP CHECK CONFIG ---
-      const RECAPTCHA_SITE_KEY = "วาง_SITE_KEY_ที่นี่";
+      const RECAPTCHA_SITE_KEY = "6Le8BUQsAAAAADL6dXL-Tso7Q13aJgOVAQSmLqi0";
 
-      // Initialize Firebase
-      let app, db;
-      try {
-        app = initializeApp(firebaseConfig);
-        self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
-        if (
-          RECAPTCHA_SITE_KEY &&
-          RECAPTCHA_SITE_KEY !== "วาง_SITE_KEY_ที่นี่"
-        ) {
-          const appCheck = initializeAppCheck(app, {
-            provider: new ReCaptchaEnterpriseProvider(RECAPTCHA_SITE_KEY),
-            isTokenAutoRefreshEnabled: true,
-          });
-          console.log("Firebase App Check: Enabled");
-        } else {
-          console.warn(
-            "App Check: Site Key not set. Running without App Check.",
-          );
-        }
-        db = getFirestore(app);
-        console.log("Firebase Connected");
-      } catch (e) {
-        console.error("Firebase Init Error:", e);
-      }
+      // ฟังก์ชันสำหรับกำหนด Timeout ให้กับ Promise
+      const withTimeout = (promise, ms, errorMessage = "ดำเนินการเกินเวลาที่กำหนด") => {
+        let timeoutId;
+        const timeoutPromise = new Promise((_, reject) => {
+          timeoutId = setTimeout(() => {
+            reject(new Error(errorMessage));
+          }, ms);
+        });
+
+        return Promise.race([promise, timeoutPromise]).finally(() => {
+          clearTimeout(timeoutId);
+        });
+      };
 
       // --- GLOBAL STATE ---
       window.currentUser = null;
       window.inventoryData = [];
       window.transactionLogs = [];
       window.currentBorrowItemId = null;
+      let app, db;
 
-      let isSaving = false;
-      let lastUserActionTime = 0;
+      // ระบบตรวจสอบอินเทอร์เน็ต
+      window.addEventListener('offline', () => {
+        Swal.fire({
+          icon: 'warning',
+          title: 'ไม่มีการเชื่อมต่อ',
+          text: 'กรุณาตรวจสอบอินเทอร์เน็ตของคุณ ระบบบางส่วนอาจไม่ทำงาน',
+          toast: true,
+          position: 'top-end',
+          showConfirmButton: false,
+          timer: 5000
+        });
+      });
+
+      window.addEventListener('online', () => {
+        Swal.fire({
+          icon: 'success',
+          title: 'กลับมาออนไลน์แล้ว',
+          toast: true,
+          position: 'top-end',
+          showConfirmButton: false,
+          timer: 3000
+        });
+      });
+
+      // --- BOOTSTRAP SYSTEM ---
+      async function bootstrapSystem() {
+        // เช็คอินเทอร์เน็ตก่อนเริ่ม
+        if (!navigator.onLine) {
+          Swal.fire({
+            icon: "error",
+            title: "ไม่พบการเชื่อมต่อ",
+            text: "กรุณาเชื่อมต่ออินเทอร์เน็ตเพื่อใช้งานระบบ",
+          });
+          document.getElementById("login-screen").classList.remove("hidden");
+          return;
+        }
+
+        window.showLoader("กำลังตรวจสอบความปลอดภัย...");
+
+        // --- APP CHECK DEBUG CONFIG (LOCAL) ---
+        // เมื่อใช้ localhost:
+        // 1. ก๊อปรหัส UUID จาก Console ด้านล่างไปที่ Firebase Console (App Check > Manage debug tokens)
+        // 2. หากลงทะเบียนแล้วยังขึ้น 403 ให้เอา UUID ที่ได้ไปแปะแทนค่า true ด้านล่าง เช่น:
+        // self.FIREBASE_APPCHECK_DEBUG_TOKEN = '12345678-abcd-efgh-ijkl-123456789012';
+        self.FIREBASE_APPCHECK_DEBUG_TOKEN = true; 
+
+        try {
+          app = initializeApp(firebaseConfig);
+
+          if (RECAPTCHA_SITE_KEY) {
+            const appCheck = initializeAppCheck(app, {
+              provider: new ReCaptchaEnterpriseProvider(RECAPTCHA_SITE_KEY),
+              isTokenAutoRefreshEnabled: true,
+            });
+
+            // ตรวจสอบ Token พร้อมจัดการข้อผิดพลาด 403 และ Timeout
+            try {
+              const tokenResponse = await withTimeout(
+                getToken(appCheck),
+                15000,
+                "App Check ใช้เวลาตรวจสอบนานเกินไป (Timeout)"
+              );
+              console.log("Firebase App Check Verified:", tokenResponse);
+            } catch (error) {
+              console.error("App Check Internal Error:", error);
+              // วิเคราะห์ข้อผิดพลาดเฉพาะกรณี 403 Forbidden
+              if (error.message.includes("403") || error.stack.includes("403")) {
+                 throw new Error("<b>ความปลอดภัยถูกปฏิเสธ (403)</b><br><br>1. กรุณาตรวจสอบรหัส UUID ใน Browser Console<br>2. นำไปลงทะเบียนในเมนู App Check ของ Firebase Console<br>3. ตรวจสอบว่าเปิดใช้งาน App Check API ใน Google Cloud Console แล้ว");
+              } else {
+                throw error;
+              }
+            }
+          }
+
+          db = getFirestore(app);
+          console.log("Firebase Connected");
+
+          // ตรวจสอบสถานะการล็อกอินเดิม
+          const storedUser = localStorage.getItem(window.APP_CONFIG.storageKeys.user);
+          if (storedUser) {
+            initApp(JSON.parse(storedUser));
+          } else {
+            document.getElementById("login-screen").classList.remove("hidden");
+            document.getElementById("app-screen").classList.add("hidden");
+          }
+          
+          window.hideLoader();
+
+        } catch (error) {
+          console.error("System Bootstrap Error:", error);
+          
+          window.hideLoader();
+          
+          // ดีดออกหน้า Login ทันทีหาก Error
+          document.getElementById("login-screen").classList.remove("hidden");
+          document.getElementById("app-screen").classList.add("hidden");
+
+          setTimeout(() => {
+            Swal.fire({
+              icon: "error",
+              title: "เข้าสู่ระบบไม่สำเร็จ",
+              html: error.message || "ไม่สามารถตรวจสอบความปลอดภัย reCAPTCHA ได้ กรุณาลองใหม่อีกครั้ง",
+              confirmButtonText: "รับทราบ",
+              allowOutsideClick: false
+            }).then(() => {
+              // ล้าง Session หากเคยมี
+              localStorage.removeItem(window.APP_CONFIG.storageKeys.user);
+              // ในกรณี 403 หรือ Error รุนแรงบน localhost แนะนำให้กด refresh อีกรอบหลังจากแก้ config
+              // location.reload(); 
+            });
+          }, 200);
+        }
+      }
 
       // --- EXPORT FUNCTIONS ---
       window.switchTab = switchTab;
@@ -987,7 +1099,7 @@
         const inputName = document.getElementById("login-name").value.trim();
         if (!inputId) return;
 
-        document.getElementById("loading-overlay").classList.remove("hidden");
+        window.showLoader("กำลังเข้าสู่ระบบ...");
 
         try {
           const q = query(
@@ -1020,11 +1132,11 @@
             localStorage.setItem("ems_user_fb", JSON.stringify(user));
             initApp(user);
           }
+          window.hideLoader();
         } catch (err) {
           console.error(err);
-          Swal.fire("Login Error", "ตรวจสอบ Config Firebase", "error");
-        } finally {
-          document.getElementById("loading-overlay").classList.add("hidden");
+          window.hideLoader();
+          Swal.fire("Login Error", "ตรวจสอบ Config Firebase หรือการเชื่อมต่อ", "error");
         }
       };
       document
@@ -1418,11 +1530,40 @@
         }
       };
 
+      // --- GAS UPLOAD HELPER ---
+      async function uploadImageToGAS(base64Data, fileName) {
+        if (!base64Data || !base64Data.startsWith("data:image")) {
+          return base64Data; // ถ้าไม่ใช่ base64 (เช่น เป็น URL อยู่แล้ว) ให้คืนค่าเดิม
+        }
+
+        const response = await fetch(GAS_API_URL, {
+          redirect: "follow",
+          method: "POST",
+          headers: {
+            "Content-Type": "text/plain;charset=utf-8",
+          },
+          body: JSON.stringify({
+            action: "uploadImage",
+            image: base64Data,
+            name: fileName
+          })
+        });
+
+        if (!response.ok) throw new Error("Network response was not ok");
+        
+        const result = await response.json();
+        if (result.status === "success") return result.url;
+        throw new Error(result.message || "Upload to Google Drive failed");
+      }
+
       // --- ADMIN: ITEM MANAGEMENT ---
       document
         .getElementById("item-form")
         .addEventListener("submit", async (e) => {
           e.preventDefault();
+          
+          window.showLoader("กำลังบันทึกข้อมูล...");
+
           const id = document.getElementById("item-id").value;
           const name = document.getElementById("item-name").value;
           const category = document.getElementById("item-category").value;
@@ -1431,15 +1572,31 @@
           const sourceType = document.querySelector(
             'input[name="img-source"]:checked',
           ).value;
-          let image =
-            sourceType === "file"
-              ? document.getElementById("item-image").value
-              : document.getElementById("item-image-url").value;
-          if (!image) image = "https://placehold.co/300x200?text=No+Image";
-
-          const itemData = { name, category, stock, image };
-
+          
+          let image = "";
           try {
+            if (sourceType === "file") {
+              const base64 = document.getElementById("item-image-temp-base64").value;
+              // ตรวจสอบว่ามีการเลือกไฟล์ใหม่ (Base64) หรือไม่
+              if (base64 && base64.startsWith("data:image")) {
+                // อัปโหลดไฟล์ไปที่ GAS ก่อนบันทึกลง Firestore
+                image = await uploadImageToGAS(base64, `${name}_${Date.now()}.jpg`);
+              } else {
+                // ถ้าไม่มีการเลือกไฟล์ใหม่ ให้ใช้รูปเดิมที่เคยมีอยู่ (ซึ่งอาจจะเป็น URL จาก Drive)
+                image = document.getElementById("item-image-preview").src;
+              }
+            } else {
+              const url = document.getElementById("item-image-url").value;
+              image = window.formatGoogleDriveLink(url);
+            }
+            
+            // ป้องกันรูปว่าง
+            if (!image || image.includes("placehold.co") || image === "") {
+               image = "https://placehold.co/300x200?text=No+Image";
+            }
+
+            const itemData = { name, category, stock, image };
+
             if (id) {
               const oldItem = window.inventoryData.find((i) => i.id == id);
               const borrowed = oldItem.stock - oldItem.remaining;
@@ -1449,6 +1606,7 @@
               itemData.remaining = stock;
               await addDoc(collection(db, "inventory"), itemData);
             }
+            
             closeModal("item-modal");
             Swal.fire({
               icon: "success",
@@ -1456,8 +1614,11 @@
               timer: 1500,
               showConfirmButton: false,
             });
-          } catch (e) {
-            console.error(e);
+          } catch (error) {
+            console.error("Save Error:", error);
+            Swal.fire("เกิดข้อผิดพลาด", error.message || "ไม่สามารถอัปโหลดรูปภาพได้", "error");
+          } finally {
+            window.hideLoader();
           }
         });
 
@@ -1469,11 +1630,12 @@
           .getElementById("input-type-url")
           .classList.toggle("hidden", type !== "url");
       };
+
       document
         .getElementById("item-image-url")
         .addEventListener("input", (e) => {
           if (e.target.value)
-            document.getElementById("item-image-preview").src = e.target.value;
+            document.getElementById("item-image-preview").src = window.formatGoogleDriveLink(e.target.value);
         });
 
       window.openAddModal = () => {
@@ -1481,7 +1643,7 @@
           "เพิ่มอุปกรณ์ใหม่";
         document.getElementById("item-form").reset();
         document.getElementById("item-id").value = "";
-        document.getElementById("item-image").value = "";
+        document.getElementById("item-image-temp-base64").value = "";
         document.getElementById("item-image-preview").src =
           "https://placehold.co/100?text=Preview";
         document.querySelector(
@@ -1498,18 +1660,21 @@
         document.getElementById("item-name").value = item.name;
         document.getElementById("item-category").value = item.category;
         document.getElementById("item-stock").value = item.stock;
+        document.getElementById("item-image-temp-base64").value = ""; // เคลียร์ไฟล์เก่า
 
         const isUrl =
           item.image &&
           item.image.startsWith("http") &&
           !item.image.startsWith("data:");
+        
         document.querySelector(
           `input[name="img-source"][value="${isUrl ? "url" : "file"}"]`,
         ).checked = true;
         window.toggleImageSource(isUrl ? "url" : "file");
 
-        if (isUrl) document.getElementById("item-image-url").value = item.image;
-        else document.getElementById("item-image").value = item.image;
+        if (isUrl) {
+          document.getElementById("item-image-url").value = item.image;
+        }
 
         document.getElementById("item-image-preview").src =
           item.image || "https://placehold.co/100";
@@ -1517,14 +1682,55 @@
       };
 
       window.deleteItem = async (id) => {
+        const item = window.inventoryData.find((i) => i.id == id);
         const result = await Swal.fire({
           title: "ลบรายการ?",
+          text: "การลบรายการจะทำการลบไฟล์รูปภาพใน Google Drive ด้วย",
           icon: "warning",
           showCancelButton: true,
           confirmButtonColor: "#d33",
           confirmButtonText: "ลบ",
         });
-        if (result.isConfirmed) await deleteDoc(doc(db, "inventory", id));
+
+        if (result.isConfirmed) {
+          window.showLoader("กำลังลบข้อมูล...");
+          try {
+            // 1. ตรวจสอบและลบไฟล์ใน Google Drive ผ่าน GAS
+            if (item && item.image && (item.image.includes("drive.google.com") || item.image.includes("googleusercontent.com/d/"))) {
+              // ดึง File ID จาก URL
+              const fileIdMatch = item.image.match(/id=([-\w]{25,})|d\/([-\w]{25,})/);
+              const actualFileId = fileIdMatch ? (fileIdMatch[1] || fileIdMatch[2]) : null;
+
+              if (actualFileId) {
+                await fetch(GAS_API_URL, {
+                  redirect: "follow",
+                  method: "POST",
+                  headers: { "Content-Type": "text/plain;charset=utf-8" },
+                  body: JSON.stringify({
+                    action: "deleteImage",
+                    fileId: actualFileId
+                  })
+                });
+                console.log("Drive file deleted:", actualFileId);
+              }
+            }
+
+            // 2. ลบข้อมูลใน Firestore
+            await deleteDoc(doc(db, "inventory", id));
+
+            Swal.fire({
+              icon: "success",
+              title: "ลบเรียบร้อย",
+              timer: 1000,
+              showConfirmButton: false,
+            });
+          } catch (error) {
+            console.error("Delete error:", error);
+            Swal.fire("Error", "ไม่สามารถลบข้อมูลได้สมบูรณ์: " + error.message, "error");
+          } finally {
+            window.hideLoader();
+          }
+        }
       };
 
       // --- RENDER FUNCTIONS ---
@@ -1546,7 +1752,6 @@
             ? "bg-white dark:bg-dark-card rounded-2xl border border-gray-100 dark:border-gray-700 flex flex-col h-full overflow-hidden opacity-60"
             : "bg-white dark:bg-dark-card rounded-2xl shadow-sm hover:shadow-md transition border border-gray-100 dark:border-gray-700 flex flex-col h-full group overflow-hidden";
 
-          // FIX: Added referrerpolicy and simplified onerror
           grid.innerHTML += `
                     <div class="${cardClass}">
                         <div class="h-40 overflow-hidden relative bg-gray-100 dark:bg-gray-800">
@@ -1606,7 +1811,6 @@
             ? `<button onclick="requestReturn('${log.id}')" class="bg-green-500 hover:bg-green-600 text-white w-10 h-10 rounded-full flex items-center justify-center shadow"><i class="fas fa-undo"></i></button>`
             : `<div class="text-yellow-500 text-xl"><i class="fas fa-clock"></i></div>`;
 
-          // FIX: Added referrerpolicy
           return `
                     <div class="bg-white dark:bg-dark-card p-4 rounded-xl border-l-4 ${isActive ? "border-primary-500" : "border-yellow-500"} shadow-sm flex items-center gap-4">
                         <img src="${item.image || "https://placehold.co/100"}" referrerpolicy="no-referrer" class="w-16 h-16 rounded-lg object-cover bg-gray-100" onerror="handleImageError(this)">
@@ -1647,7 +1851,6 @@
         pending.forEach((log) => {
           const item =
             window.inventoryData.find((i) => i.id == log.itemId) || {};
-          // FIX: Added referrerpolicy
           list.innerHTML += `
                     <div class="bg-white dark:bg-dark-card rounded-xl shadow-md overflow-hidden border border-yellow-200">
                         <div class="flex p-4 gap-4">
@@ -1721,21 +1924,7 @@
           }
 
           tbody.innerHTML += `
-                    <tr class="bg-white dark:bg-dark-card border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition">
-                        ${checkCell}
-                        <td class="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">${borrowDateTime}</td>
-                        <td class="px-4 py-3">
-                            <div class="font-medium text-gray-900 dark:text-white">${log.borrowerName}</div>
-                            <div class="text-[11px] text-gray-400 font-light mt-0.5">ID: ${log.empId}</div>
-                        </td>
-                        <td class="px-4 py-3 text-gray-800 dark:text-gray-200">${log.itemName}</td>
-                        <td class="px-4 py-3 text-center font-bold text-gray-700 dark:text-gray-300">${log.qty}</td>
-                        <td class="px-4 py-3 text-center text-sm">${status}</td>
-                        <td class="px-4 py-3 text-center text-sm text-gray-500 whitespace-nowrap">
-                            ${returnDateTime}
-                            ${deleteBtn}
-                        </td>
-                    </tr>`;
+                    <tr class="bg-white dark:bg-dark-card border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition">${checkCell}<td class="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">${borrowDateTime}</td><td class="px-4 py-3"><div class="font-medium text-gray-900 dark:text-white">${log.borrowerName}</div><div class="text-[11px] text-gray-400 font-light mt-0.5">ID: ${log.empId}</div></td><td class="px-4 py-3 text-gray-800 dark:text-gray-200">${log.itemName}</td><td class="px-4 py-3 text-center font-bold text-gray-700 dark:text-gray-300">${log.qty}</td><td class="px-4 py-3 text-center text-sm">${status}</td><td class="px-4 py-3 text-center text-sm text-gray-500 whitespace-nowrap">${returnDateTime}${deleteBtn}</td></tr>`;
         });
       }
 
@@ -1743,7 +1932,6 @@
         const tbody = document.getElementById("admin-table-body");
         tbody.innerHTML = "";
         window.inventoryData.forEach((item) => {
-          // FIX: Added referrerpolicy
           tbody.innerHTML += `
                     <tr class="bg-white border-b dark:bg-dark-card dark:border-gray-700">
                         <td class="px-4 py-3 text-center"><img src="${item.image}" referrerpolicy="no-referrer" class="w-10 h-10 rounded object-cover mx-auto" onerror="handleImageError(this)"></td>
@@ -1782,7 +1970,7 @@
         .addEventListener("change", renderInventory);
 
       // --- UTILS ---
-      function resizeImage(file, maxWidth = 800) {
+      function resizeImage(file, maxWidth = 600) {
         return new Promise((resolve) => {
           const reader = new FileReader();
           reader.onload = (e) => {
@@ -1799,7 +1987,7 @@
               canvas.height = h;
               const ctx = canvas.getContext("2d");
               ctx.drawImage(img, 0, 0, w, h);
-              resolve(canvas.toDataURL("image/jpeg", 0.6));
+              resolve(canvas.toDataURL("image/jpeg", 0.7));
             };
             img.src = e.target.result;
           };
@@ -1813,7 +2001,7 @@
           if (e.target.files[0]) {
             const base64 = await resizeImage(e.target.files[0]);
             document.getElementById("item-image-preview").src = base64;
-            document.getElementById("item-image").value = base64;
+            document.getElementById("item-image-temp-base64").value = base64;
           }
         });
 
@@ -1905,17 +2093,8 @@
         }
       }
 
-      // --- INIT ---
-      (function () {
-        if (localStorage.getItem(APP_CONFIG.storageKeys.theme) === "dark")
-          document.documentElement.classList.add("dark");
-        const storedUser = localStorage.getItem("ems_user_fb");
-        if (storedUser) initApp(JSON.parse(storedUser));
-        else {
-          document.getElementById("login-screen").classList.remove("hidden");
-          document.getElementById("app-screen").classList.add("hidden");
-        }
-      })();
+      // --- INITIALIZATION ---
+      bootstrapSystem();
     </script>
   </body>
 </html>
