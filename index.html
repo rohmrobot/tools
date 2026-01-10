@@ -42,11 +42,11 @@
                 700: "#0369a1",
                 900: "#0c4a6e",
               },
-              dark: { 
+              dark: {
                 bg: "#0f172a", // Slate 900
                 card: "#1e293b", // Slate 800
                 text: "#e2e8f0", // Slate 200
-                muted: "#94a3b8" // Slate 400
+                muted: "#94a3b8", // Slate 400
               },
             },
           },
@@ -94,7 +94,7 @@
       }
       .dark .swal2-popup {
         background: #1e293b !important;
-        color: #e2e8f0 !important; 
+        color: #e2e8f0 !important;
       }
       .swal2-container.swal2-top-end {
         top: 50% !important;
@@ -121,23 +121,33 @@
         opacity: 1;
         transition: all 0.2s ease-out;
       }
-      
+
       /* Continuous Seamless Marquee */
       .marquee-wrapper {
         position: relative;
         overflow: hidden;
         white-space: nowrap;
-        mask-image: linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%);
+        mask-image: linear-gradient(
+          to right,
+          transparent 0%,
+          black 5%,
+          black 95%,
+          transparent 100%
+        );
       }
-      
+
       .marquee-content {
         display: inline-flex;
         animation: seamless-marquee 10s linear infinite;
       }
-      
+
       @keyframes seamless-marquee {
-        0% { transform: translateX(0); }
-        100% { transform: translateX(-50%); } 
+        0% {
+          transform: translateX(0);
+        }
+        100% {
+          transform: translateX(-50%);
+        }
       }
 
       /* Selection Highlight Style */
@@ -148,7 +158,12 @@
       }
       .dark .card-selected {
         border-color: #0ea5e9 !important;
-        background-color: rgba(12, 74, 110, 0.4) !important; /* primary-900 / 40% */
+        background-color: rgba(
+          12,
+          74,
+          110,
+          0.4
+        ) !important; /* primary-900 / 40% */
       }
     </style>
   </head>
@@ -157,7 +172,8 @@
   >
     <script>
       // ลิงก์ Google Apps Script สำหรับการอัปโหลดรูป
-      const GAS_API_URL = "https://script.google.com/macros/s/AKfycbw8ssHPXkmML0yMsKXP2Qr03K-zk-TlQiD-hPNVQmRqAUhOpnZMJhrYGGOARNsb2YM/exec";
+      const GAS_API_URL =
+        "https://script.google.com/macros/s/AKfycbw8ssHPXkmML0yMsKXP2Qr03K-zk-TlQiD-hPNVQmRqAUhOpnZMJhrYGGOARNsb2YM/exec";
 
       window.APP_CONFIG = {
         storageKeys: {
@@ -176,82 +192,85 @@
       window.formatGoogleDriveLink = (url) => {
         if (!url) return "";
         const idMatch = url.match(/[-\w]{25,}/);
-        if (idMatch && (url.includes('drive.google.com') || url.includes('docs.google.com'))) {
+        if (
+          idMatch &&
+          (url.includes("drive.google.com") || url.includes("docs.google.com"))
+        ) {
           return `https://drive.google.com/thumbnail?id=${idMatch[0]}&sz=w800`;
         }
         return url;
       };
-      
+
       // Helper function for global loading
       window.showLoading = (text = "กำลังดำเนินการ...") => {
         Swal.fire({
-            title: text,
-            allowOutsideClick: false,
-            didOpen: () => {
-                Swal.showLoading();
-            }
+          title: text,
+          allowOutsideClick: false,
+          didOpen: () => {
+            Swal.showLoading();
+          },
         });
       };
-      
+
       window.hideLoading = () => {
         Swal.close();
       };
 
       // Set to track selected logs for deletion
       window.selectedLogIds = new Set();
-      
+
       // Temp storage for modal tags
       window.tempTags = [];
 
       // Network Status Listeners
-      window.addEventListener('offline', () => {
+      window.addEventListener("offline", () => {
         Swal.fire({
-            icon: 'warning',
-            title: 'ขาดการเชื่อมต่ออินเทอร์เน็ต',
-            text: 'ระบบจะทำงานต่อเมื่อเชื่อมต่อสำเร็จ',
-            toast: true,
-            position: 'top-end',
-            showConfirmButton: false,
-            timer: 5000,
-            timerProgressBar: true,
-            background: '#fff',
-            iconColor: '#f59e0b'
+          icon: "warning",
+          title: "ขาดการเชื่อมต่ออินเทอร์เน็ต",
+          text: "ระบบจะทำงานต่อเมื่อเชื่อมต่อสำเร็จ",
+          toast: true,
+          position: "top-end",
+          showConfirmButton: false,
+          timer: 5000,
+          timerProgressBar: true,
+          background: "#fff",
+          iconColor: "#f59e0b",
         });
       });
 
-      window.addEventListener('online', () => {
+      window.addEventListener("online", () => {
         Swal.fire({
-            icon: 'success',
-            title: 'เชื่อมต่ออินเทอร์เน็ตแล้ว',
-            toast: true,
-            position: 'top-end',
-            showConfirmButton: false,
-            timer: 3000,
-            timerProgressBar: true
+          icon: "success",
+          title: "เชื่อมต่ออินเทอร์เน็ตแล้ว",
+          toast: true,
+          position: "top-end",
+          showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true,
         });
       });
     </script>
 
     <!-- Image Lightbox Modal -->
-    <div 
-        id="image-modal" 
-        class="fixed inset-0 z-[100] bg-black/90 hidden flex items-center justify-center cursor-zoom-out p-4"
-        onclick="closeImageModal()"
+    <div
+      id="image-modal"
+      class="fixed inset-0 z-[100] bg-black/90 hidden flex items-center justify-center cursor-zoom-out p-4"
+      onclick="closeImageModal()"
     >
-        <div class="relative max-w-full max-h-full">
-            <img 
-                id="image-modal-content" 
-                src="" 
-                class="max-h-[90vh] max-w-full object-contain rounded-lg shadow-2xl transition-transform duration-300 transform scale-95"
-                onclick="event.stopPropagation()" 
-            />
-            <button 
-                class="absolute -top-10 right-0 text-white text-3xl hover:text-gray-300 focus:outline-none"
-                onclick="closeImageModal()"
-            >
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
+      <div class="relative max-w-full max-h-full">
+        <img
+          id="image-modal-content"
+          src=""
+          class="max-h-[90vh] max-w-full object-contain rounded-lg shadow-2xl transition-transform duration-300 transform scale-95"
+          onclick="event.stopPropagation()"
+        />
+        <button
+          class="absolute -top-10 right-0 text-white text-3xl hover:text-gray-300 focus:outline-none"
+          onclick="closeImageModal()"
+        >
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
     </div>
 
     <div
@@ -344,19 +363,19 @@
               <div class="flex flex-col justify-center">
                 <span class="font-bold text-lg leading-tight tracking-tight"
                   >Tools<span class="text-primary-600 dark:text-primary-400"
-                    >Borrow</span
+                    >Master</span
                   ></span
                 >
                 <div class="flex items-center gap-2">
+                  <div
+                    class="flex items-center gap-1 text-[10px] text-gray-500 dark:text-gray-400 uppercase tracking-wide"
+                  >
+                    <span>Borrow Systems</span>
+                  </div>
                   <span
                     class="w-2 h-2 rounded-full bg-green-500 animate-pulse mr-1"
                     title="Online"
                   ></span>
-                  <div class="flex items-center gap-1 text-[10px] text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-                      <span>อัพเดตข้อมูลอัตโนมัติใน</span>
-                      <span id="refresh-timer" class="font-bold text-primary-600 dark:text-primary-400 w-auto min-w-[1.5rem] text-center">30</span>
-                      <span>วินาที</span>
-                  </div>
                 </div>
               </div>
             </div>
@@ -384,6 +403,7 @@
                       Staff
                     </p>
                   </div>
+                  <!-- UPDATED: User Icon Container with ID for Color Control -->
                   <div
                     id="user-role-icon-bg"
                     class="w-9 h-9 rounded-full bg-primary-100 dark:bg-primary-900 border-2 border-white dark:border-gray-600 flex items-center justify-center text-primary-600 dark:text-primary-300"
@@ -414,6 +434,14 @@
                     <i class="fas fa-sync-alt mr-2 text-blue-500"></i>
                     รีเฟรชข้อมูล
                   </button>
+                  <!-- ADDED: History Menu for Users -->
+                  <button
+                    onclick="switchTab('history')"
+                    class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 border-t border-gray-100 dark:border-gray-700"
+                  >
+                    <i class="fas fa-history mr-2 text-primary-500"></i>
+                    ประวัติการยืม-คืน
+                  </button>
                   <button
                     onclick="logout()"
                     class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
@@ -427,71 +455,125 @@
         </div>
       </nav>
 
+      <!-- Updated Nav Container: Removed overflow-x-hidden to allow dropdown to show -->
       <div
         class="bg-white dark:bg-dark-card shadow-sm border-b border-gray-200 dark:border-gray-700 sticky top-16 z-30"
       >
         <div class="w-full px-2 sm:px-4">
+          <!-- Compact Nav for Mobile -->
           <div class="flex items-center justify-between py-2">
-            <div class="flex flex-1 gap-1 sm:gap-2 justify-between sm:justify-start">
-                <button
-                  onclick="switchTab('inventory')"
-                  id="tab-inventory"
-                  class="tab-btn active-tab flex-1 sm:flex-none px-2 sm:px-4 py-2 rounded-lg sm:rounded-full text-[10px] sm:text-sm font-medium flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 transition-all"
+            <div
+              class="flex flex-1 gap-1 sm:gap-2 justify-between sm:justify-start"
+            >
+              <button
+                onclick="switchTab('inventory')"
+                id="tab-inventory"
+                class="tab-btn active-tab flex-1 sm:flex-none px-2 sm:px-4 py-2 rounded-lg sm:rounded-full text-[10px] sm:text-sm font-medium flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 transition-all"
+              >
+                <i class="fas fa-box-open text-base sm:text-sm"></i>
+                <span>ยืมของ</span>
+              </button>
+              <button
+                onclick="switchTab('my-items')"
+                id="tab-my-items"
+                class="tab-btn flex-1 sm:flex-none px-2 sm:px-4 py-2 rounded-lg sm:rounded-full text-[10px] sm:text-sm font-medium flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 transition-all relative"
+              >
+                <i class="fas fa-hand-holding text-base sm:text-sm"></i>
+                <span>ของฉัน</span>
+                <span
+                  id="my-items-badge"
+                  class="hidden absolute top-0 right-0 sm:-top-1 sm:-right-1 w-4 h-4 sm:w-5 sm:h-5 bg-red-500 text-white text-[10px] rounded-full flex items-center justify-center border-2 border-white dark:border-gray-800"
+                  >0</span
                 >
-                  <i class="fas fa-box-open text-base sm:text-sm"></i> <span>ยืมของ</span>
-                </button>
-                <button
-                  onclick="switchTab('my-items')"
-                  id="tab-my-items"
-                  class="tab-btn flex-1 sm:flex-none px-2 sm:px-4 py-2 rounded-lg sm:rounded-full text-[10px] sm:text-sm font-medium flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 transition-all relative"
+              </button>
+              <!-- UPDATED: Verify Tab (Default Gray) -->
+              <button
+                onclick="switchTab('verify')"
+                id="tab-verify"
+                class="tab-btn hidden flex-1 sm:flex-none px-2 sm:px-4 py-2 rounded-lg sm:rounded-full text-[10px] sm:text-sm font-medium flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 transition-all relative text-gray-500 dark:text-gray-400"
+              >
+                <i class="fas fa-tasks text-base sm:text-sm"></i>
+                <span>ตรวจสอบ</span>
+                <span
+                  id="verify-badge"
+                  class="hidden absolute top-0 right-0 sm:-top-1 sm:-right-1 w-4 h-4 sm:w-5 sm:h-5 bg-red-500 text-white text-[10px] rounded-full flex items-center justify-center border-2 border-white dark:border-gray-800"
+                  >0</span
                 >
-                  <i class="fas fa-hand-holding text-base sm:text-sm"></i> <span>ของฉัน</span>
+              </button>
+              <!-- History Tab: Hidden by default for Users, Shown for Admins via JS -->
+              <button
+                onclick="switchTab('history')"
+                id="tab-history"
+                class="tab-btn flex-1 sm:flex-none px-2 sm:px-4 py-2 rounded-lg sm:rounded-full text-[10px] sm:text-sm font-medium flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 transition-all hidden"
+              >
+                <i class="fas fa-history text-base sm:text-sm"></i>
+                <span>ประวัติ</span>
+              </button>
+
+              <!-- UPDATED: Admin Dropdown Trigger (Default Gray) -->
+              <div class="relative hidden" id="admin-menu-container">
+                <button
+                  onclick="
+                    document
+                      .getElementById('admin-dropdown')
+                      .classList.toggle('hidden')
+                  "
+                  id="tab-admin-group"
+                  class="tab-btn flex-1 sm:flex-none px-2 sm:px-4 py-2 rounded-lg sm:rounded-full text-[10px] sm:text-sm font-medium flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 transition-all text-gray-500 dark:text-gray-400"
+                >
+                  <i class="fas fa-user-shield text-base sm:text-sm"></i>
                   <span
-                    id="my-items-badge"
-                    class="hidden absolute top-0 right-0 sm:-top-1 sm:-right-1 w-4 h-4 sm:w-5 sm:h-5 bg-red-500 text-white text-[10px] rounded-full flex items-center justify-center border-2 border-white dark:border-gray-800"
-                    >0</span
-                  >
+                    >Admin <i class="fas fa-chevron-down text-[8px] ml-1"></i
+                  ></span>
                 </button>
-                <button
-                  onclick="switchTab('verify')"
-                  id="tab-verify"
-                  class="tab-btn hidden flex-1 sm:flex-none px-2 sm:px-4 py-2 rounded-lg sm:rounded-full text-[10px] sm:text-sm font-medium flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 transition-all relative text-gray-500 dark:text-gray-400"
+                <!-- Dropdown Content - Increased z-index to 60 -->
+                <div
+                  id="admin-dropdown"
+                  class="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-100 dark:border-gray-700 hidden z-[60] overflow-hidden ring-1 ring-black ring-opacity-5"
                 >
-                  <i class="fas fa-tasks text-base sm:text-sm"></i> <span>ตรวจสอบ</span>
-                  <span
-                    id="verify-badge"
-                    class="hidden absolute top-0 right-0 sm:-top-1 sm:-right-1 w-4 h-4 sm:w-5 sm:h-5 bg-red-500 text-white text-[10px] rounded-full flex items-center justify-center border-2 border-white dark:border-gray-800"
-                    >0</span
+                  <button
+                    onclick="
+                      switchTab('dashboard');
+                      document
+                        .getElementById('admin-dropdown')
+                        .classList.add('hidden');
+                    "
+                    class="w-full text-left px-4 py-3 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2 border-b border-gray-50 dark:border-gray-700 text-gray-700 dark:text-gray-300"
                   >
-                </button>
-                <button
-                  onclick="switchTab('history')"
-                  id="tab-history"
-                  class="tab-btn flex-1 sm:flex-none px-2 sm:px-4 py-2 rounded-lg sm:rounded-full text-[10px] sm:text-sm font-medium flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 transition-all"
-                >
-                  <i class="fas fa-history text-base sm:text-sm"></i> <span>ประวัติ</span>
-                </button>
-                
-                <div class="relative hidden" id="admin-menu-container">
-                    <button
-                      onclick="document.getElementById('admin-dropdown').classList.toggle('hidden')"
-                      id="tab-admin-group"
-                      class="tab-btn flex-1 sm:flex-none px-2 sm:px-4 py-2 rounded-lg sm:rounded-full text-[10px] sm:text-sm font-medium flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 transition-all text-gray-500 dark:text-gray-400"
-                    >
-                      <i class="fas fa-user-shield text-base sm:text-sm"></i> <span>Admin <i class="fas fa-chevron-down text-[8px] ml-1"></i></span>
-                    </button>
-                    <div id="admin-dropdown" class="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-100 dark:border-gray-700 hidden z-[60] overflow-hidden ring-1 ring-black ring-opacity-5">
-                        <button onclick="switchTab('dashboard'); document.getElementById('admin-dropdown').classList.add('hidden')" class="w-full text-left px-4 py-3 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2 border-b border-gray-50 dark:border-gray-700 text-gray-700 dark:text-gray-300">
-                            <i class="fas fa-chart-pie w-5 text-center text-indigo-500"></i> ภาพรวม
-                        </button>
-                        <button onclick="switchTab('admin'); document.getElementById('admin-dropdown').classList.add('hidden')" class="w-full text-left px-4 py-3 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2 border-b border-gray-50 dark:border-gray-700 text-gray-700 dark:text-gray-300">
-                            <i class="fas fa-cog w-5 text-center text-purple-500"></i> จัดการสต็อก
-                        </button>
-                        <button onclick="switchTab('users'); document.getElementById('admin-dropdown').classList.add('hidden')" class="w-full text-left px-4 py-3 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2 text-gray-700 dark:text-gray-300" id="btn-menu-users">
-                            <i class="fas fa-users-cog w-5 text-center text-pink-500"></i> ผู้ใช้งาน
-                        </button>
-                    </div>
+                    <i
+                      class="fas fa-chart-pie w-5 text-center text-indigo-500"
+                    ></i>
+                    ภาพรวม
+                  </button>
+                  <button
+                    onclick="
+                      switchTab('admin');
+                      document
+                        .getElementById('admin-dropdown')
+                        .classList.add('hidden');
+                    "
+                    class="w-full text-left px-4 py-3 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2 border-b border-gray-50 dark:border-gray-700 text-gray-700 dark:text-gray-300"
+                  >
+                    <i class="fas fa-cog w-5 text-center text-purple-500"></i>
+                    จัดการสต็อก
+                  </button>
+                  <button
+                    onclick="
+                      switchTab('users');
+                      document
+                        .getElementById('admin-dropdown')
+                        .classList.add('hidden');
+                    "
+                    class="w-full text-left px-4 py-3 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2 text-gray-700 dark:text-gray-300"
+                    id="btn-menu-users"
+                  >
+                    <i
+                      class="fas fa-users-cog w-5 text-center text-pink-500"
+                    ></i>
+                    ผู้ใช้งาน
+                  </button>
                 </div>
+              </div>
             </div>
           </div>
         </div>
@@ -500,7 +582,8 @@
       <main class="flex-1 w-full px-4 py-6 pb-24">
         <!-- Dashboard View -->
         <div id="view-dashboard" class="hidden fade-in">
-           <div class="mb-6">
+          <!-- Content same as before -->
+          <div class="mb-6">
             <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
               <i class="fas fa-chart-line text-indigo-500"></i> ภาพรวมระบบ
               (Dashboard)
@@ -510,25 +593,33 @@
               <div
                 class="bg-white dark:bg-dark-card p-4 rounded-xl shadow-sm border-l-4 border-blue-500"
               >
-                <div class="text-xs text-gray-500 dark:text-dark-muted">ทั้งหมดในสต็อก</div>
+                <div class="text-xs text-gray-500 dark:text-dark-muted">
+                  ทั้งหมดในสต็อก
+                </div>
                 <div class="text-2xl font-bold" id="stat-total-items">0</div>
               </div>
               <div
                 class="bg-white dark:bg-dark-card p-4 rounded-xl shadow-sm border-l-4 border-green-500"
               >
-                <div class="text-xs text-gray-500 dark:text-dark-muted">รายการยืมทั้งหมด</div>
+                <div class="text-xs text-gray-500 dark:text-dark-muted">
+                  รายการยืมทั้งหมด
+                </div>
                 <div class="text-2xl font-bold" id="stat-total-logs">0</div>
               </div>
               <div
                 class="bg-white dark:bg-dark-card p-4 rounded-xl shadow-sm border-l-4 border-yellow-500"
               >
-                <div class="text-xs text-gray-500 dark:text-dark-muted">กำลังถูกยืม</div>
+                <div class="text-xs text-gray-500 dark:text-dark-muted">
+                  กำลังถูกยืม
+                </div>
                 <div class="text-2xl font-bold" id="stat-active-borrows">0</div>
               </div>
               <div
                 class="bg-white dark:bg-dark-card p-4 rounded-xl shadow-sm border-l-4 border-indigo-500"
               >
-                <div class="text-xs text-gray-500 dark:text-dark-muted">ผู้ใช้งาน</div>
+                <div class="text-xs text-gray-500 dark:text-dark-muted">
+                  ผู้ใช้งาน
+                </div>
                 <div class="text-2xl font-bold" id="stat-users-count">-</div>
               </div>
             </div>
@@ -567,13 +658,17 @@
               </div>
               <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div>
-                  <h4 class="text-green-600 dark:text-green-400 font-bold text-xs uppercase mb-2">
+                  <h4
+                    class="text-green-600 dark:text-green-400 font-bold text-xs uppercase mb-2"
+                  >
                     🔥 ยืมมากที่สุด
                   </h4>
                   <ul id="list-most-borrowed" class="space-y-2 text-sm"></ul>
                 </div>
                 <div>
-                  <h4 class="text-red-500 dark:text-red-400 font-bold text-xs uppercase mb-2">
+                  <h4
+                    class="text-red-500 dark:text-red-400 font-bold text-xs uppercase mb-2"
+                  >
                     ❄️ ยืมน้อยที่สุด (Zero Use)
                   </h4>
                   <ul
@@ -586,35 +681,32 @@
           </div>
 
           <div
-              class="bg-white dark:bg-dark-card p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 mb-6 flex flex-col sm:flex-row justify-between items-center gap-4"
-            >
-              <div class="flex items-center gap-3">
-                <div
-                  class="bg-orange-100 dark:bg-orange-900/30 p-3 rounded-full text-orange-600 dark:text-orange-400"
-                >
-                  <i class="fas fa-server text-xl"></i>
-                </div>
-                <div>
-                  <h3
-                    class="font-bold text-gray-700 dark:text-gray-200 text-sm"
-                  >
-                    ตรวจสอบโควต้าการใช้งานจริง
-                  </h3>
-                  <p class="text-xs text-gray-500 dark:text-dark-muted">
-                    ดูปริมาณการอ่าน/เขียนข้อมูลและขีดจำกัด (Free Tier) ได้ที่
-                    Firebase Console
-                  </p>
-                </div>
-              </div>
-              <a
-                href="https://console.firebase.google.com/u/0/project/borrow-tools-system/firestore/databases/-default-/usage/prev-24h"
-                target="_blank"
-                class="w-full sm:w-auto text-center bg-indigo-50 text-indigo-600 hover:bg-indigo-100 dark:bg-indigo-900/50 dark:text-indigo-300 px-4 py-2 rounded-lg text-sm font-bold transition flex items-center justify-center gap-2 whitespace-nowrap border border-indigo-100 dark:border-indigo-800"
+            class="bg-white dark:bg-dark-card p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 mb-6 flex flex-col sm:flex-row justify-between items-center gap-4"
+          >
+            <div class="flex items-center gap-3">
+              <div
+                class="bg-orange-100 dark:bg-orange-900/30 p-3 rounded-full text-orange-600 dark:text-orange-400"
               >
-                <i class="fas fa-external-link-alt"></i> ไปที่ Console
-              </a>
+                <i class="fas fa-server text-xl"></i>
+              </div>
+              <div>
+                <h3 class="font-bold text-gray-700 dark:text-gray-200 text-sm">
+                  ตรวจสอบโควต้าการใช้งานจริง
+                </h3>
+                <p class="text-xs text-gray-500 dark:text-dark-muted">
+                  ดูปริมาณการอ่าน/เขียนข้อมูลและขีดจำกัด (Free Tier) ได้ที่
+                  Firebase Console
+                </p>
+              </div>
             </div>
-
+            <a
+              href="https://console.firebase.google.com/u/0/project/borrow-tools-system/firestore/databases/-default-/usage/prev-24h"
+              target="_blank"
+              class="w-full sm:w-auto text-center bg-indigo-50 text-indigo-600 hover:bg-indigo-100 dark:bg-indigo-900/50 dark:text-indigo-300 px-4 py-2 rounded-lg text-sm font-bold transition flex items-center justify-center gap-2 whitespace-nowrap border border-indigo-100 dark:border-indigo-800"
+            >
+              <i class="fas fa-external-link-alt"></i> ไปที่ Console
+            </a>
+          </div>
         </div>
 
         <div id="view-inventory" class="fade-in">
@@ -651,7 +743,9 @@
               </div>
             </div>
           </div>
+          <!-- ADDED: Active Filter Display with Clear Button -->
           <div id="active-filter-display" class="hidden mb-4 animate-fade-in">
+            <!-- Injected via JS -->
           </div>
           <div
             id="inventory-grid"
@@ -660,6 +754,7 @@
         </div>
 
         <div id="view-my-items" class="hidden fade-in">
+          <!-- My Items Content -->
           <div class="flex justify-between items-end mb-6">
             <div>
               <h2 class="text-2xl font-bold text-gray-800 dark:text-white">
@@ -716,6 +811,7 @@
         </div>
 
         <div id="view-verify" class="hidden fade-in">
+          <!-- Verify Content -->
           <div class="flex justify-between items-center mb-6">
             <h2 class="text-2xl font-bold">ตรวจสอบคืนของ</h2>
             <button
@@ -739,15 +835,25 @@
         </div>
 
         <div id="view-history" class="hidden fade-in">
+          <!-- History Content -->
           <div class="flex justify-between items-center mb-6">
             <h2 class="text-xl font-bold">ประวัติการยืม-คืน</h2>
             <div id="history-action-area" class="hidden items-center gap-2">
-              <button onclick="toggleSelectAllMobile()" class="text-xs bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 px-3 py-1.5 rounded-lg text-gray-600 dark:text-gray-300 transition flex items-center gap-1">
-                  <i class="fas fa-check-double text-xs"></i> <span id="select-all-text">เลือกทั้งหมด</span>
+              <!-- ADDED: Select All Button -->
+              <button
+                onclick="toggleSelectAllMobile()"
+                class="text-xs bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 px-3 py-1.5 rounded-lg text-gray-600 dark:text-gray-300 transition flex items-center gap-1"
+              >
+                <i class="fas fa-check-double text-xs"></i>
+                <span id="select-all-text">เลือกทั้งหมด</span>
               </button>
-              
-              <span id="selection-count" class="text-xs text-gray-500 dark:text-dark-muted hidden sm:inline">0 รายการ</span>
-              
+
+              <span
+                id="selection-count"
+                class="text-xs text-gray-500 dark:text-dark-muted hidden sm:inline"
+                >0 รายการ</span
+              >
+
               <button
                 onclick="deleteSelectedLogs()"
                 id="btn-bulk-delete"
@@ -757,15 +863,22 @@
               </button>
             </div>
           </div>
+
+          <!-- History Container (Supports both Table and Card view via JS injection) -->
           <div id="history-container">
+            <!-- Will be populated by JS -->
           </div>
         </div>
 
         <div id="view-admin" class="hidden fade-in">
-          <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+          <!-- Admin Content -->
+          <div
+            class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4"
+          >
             <h2 class="text-xl font-bold">จัดการสต็อก</h2>
             <div class="flex gap-2 w-full md:w-auto">
-               <div class="relative flex-1 md:w-48">
+              <!-- ADDED: Admin Filter -->
+              <div class="relative flex-1 md:w-48">
                 <select
                   id="admin-filter-category"
                   class="w-full appearance-none pl-4 pr-8 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm focus:ring-2 focus:ring-primary-500 outline-none shadow-sm cursor-pointer h-full"
@@ -776,7 +889,7 @@
                   class="fas fa-chevron-down absolute right-3 top-3 text-gray-400 pointer-events-none text-xs"
                 ></i>
               </div>
-              
+
               <button
                 onclick="openAddModal()"
                 class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg shadow text-sm whitespace-nowrap"
@@ -785,14 +898,21 @@
               </button>
             </div>
           </div>
+
+          <!-- Admin Inventory Container (Supports both Table and Card view via JS injection) -->
           <div id="admin-inventory-container">
+            <!-- Will be populated by JS -->
           </div>
         </div>
 
+        <!-- Users View -->
         <div id="view-users" class="hidden fade-in">
-            <h2 class="text-xl font-bold mb-6">จัดการผู้ใช้งาน</h2>
-             <div id="users-container">
-             </div>
+          <h2 class="text-xl font-bold mb-6">จัดการผู้ใช้งาน</h2>
+
+          <!-- Users Container (Supports both Table and Card view via JS injection) -->
+          <div id="users-container">
+            <!-- Will be populated by JS -->
+          </div>
         </div>
       </main>
     </div>
@@ -967,27 +1087,43 @@
             placeholder="ชื่ออุปกรณ์"
             class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700"
           />
-          
+
           <!-- MULTI-TAG INPUT SECTION (FIXED LAYOUT) -->
           <div class="mb-2">
-              <label class="block text-sm mb-1 font-medium">หมวดหมู่ (Tags)</label>
-              <div class="flex flex-wrap gap-2 mb-2 p-2 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 min-h-[42px]" id="modal-tags-container">
-                  <!-- Tags will be injected here -->
+            <label class="block text-sm mb-1 font-medium"
+              >หมวดหมู่ (Tags)</label
+            >
+            <div
+              class="flex flex-wrap gap-2 mb-2 p-2 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 min-h-[42px]"
+              id="modal-tags-container"
+            >
+              <!-- Tags will be injected here -->
+            </div>
+            <div class="flex flex-row gap-2">
+              <div class="flex-1 relative">
+                <input
+                  type="text"
+                  id="item-tag-input"
+                  placeholder="พิมพ์หมวดหมู่แล้วกดเพิ่ม"
+                  list="category-list"
+                  class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700"
+                  onkeypress="
+                    if (event.key === 'Enter') {
+                      event.preventDefault();
+                      addTagFromInput();
+                    }
+                  "
+                />
+                <datalist id="category-list"></datalist>
               </div>
-              <div class="flex flex-row gap-2">
-                  <div class="flex-1 relative">
-                    <input
-                        type="text"
-                        id="item-tag-input"
-                        placeholder="พิมพ์หมวดหมู่แล้วกดเพิ่ม"
-                        list="category-list"
-                        class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700"
-                        onkeypress="if(event.key === 'Enter'){event.preventDefault(); addTagFromInput();}"
-                    />
-                    <datalist id="category-list"></datalist>
-                  </div>
-                  <button type="button" onclick="addTagFromInput()" class="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg whitespace-nowrap">เพิ่ม</button>
-              </div>
+              <button
+                type="button"
+                onclick="addTagFromInput()"
+                class="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg whitespace-nowrap"
+              >
+                เพิ่ม
+              </button>
+            </div>
           </div>
 
           <input
@@ -998,7 +1134,7 @@
             placeholder="จำนวน Stock"
             class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700"
           />
-          
+
           <div class="flex justify-end gap-3 pt-4">
             <button
               type="button"
@@ -1063,20 +1199,21 @@
       window.transactionLogs = [];
       window.usersData = [];
       window.currentBorrowItemId = null;
-      window.refreshTimerId = null;
-      window.defaultRefreshRate = 30; // 30 seconds default
       let isSaving = false;
+      let unsubscribeInventory = null;
+      let unsubscribeLogs = null;
+      let unsubscribeUsers = null;
 
       // --- HELPER & UI FUNCTIONS (HOISTED) ---
-      
+
       // UPDATED: Create responsive Marquee (Mobile Only)
       window.createMarqueeHtml = (text, maxLength = 18) => {
-          if (text.length <= maxLength) {
-              return `<h4 class="font-bold text-gray-900 dark:text-gray-100 truncate leading-tight">${text}</h4>`;
-          }
-          // Duplicate text for seamless loop only on Mobile (md:hidden)
-          // On Desktop (md:block), show truncated text
-          return `
+        if (text.length <= maxLength) {
+          return `<h4 class="font-bold text-gray-900 dark:text-gray-100 truncate leading-tight">${text}</h4>`;
+        }
+        // Duplicate text for seamless loop only on Mobile (md:hidden)
+        // On Desktop (md:block), show truncated text
+        return `
             <div class="marquee-wrapper w-full md:hidden">
                 <div class="marquee-content">
                     <span class="font-bold text-gray-900 dark:text-gray-100 mr-8">${text}</span>
@@ -1088,98 +1225,97 @@
       };
 
       window.getCategoryArray = (item) => {
-          if (!item.category) return [];
-          if (Array.isArray(item.category)) return item.category;
-          return [item.category]; // Legacy support for string
-      }
+        if (!item.category) return [];
+        if (Array.isArray(item.category)) return item.category;
+        return [item.category]; // Legacy support for string
+      };
 
       window.getTagColor = (tag) => {
-          if (!tag) return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300';
-          
-          const colors = [
-            'bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-200',
-            'bg-orange-100 text-orange-800 dark:bg-orange-900/50 dark:text-orange-200',
-            'bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-200',
-            'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-200',
-            'bg-lime-100 text-lime-800 dark:bg-lime-900/50 dark:text-lime-200',
-            'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-200',
-            'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-200',
-            'bg-teal-100 text-teal-800 dark:bg-teal-900/50 dark:text-teal-200',
-            'bg-cyan-100 text-cyan-800 dark:bg-cyan-900/50 dark:text-cyan-200',
-            'bg-sky-100 text-sky-800 dark:bg-sky-900/50 dark:text-sky-200',
-            'bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-200',
-            'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/50 dark:text-indigo-200',
-            'bg-violet-100 text-violet-800 dark:bg-violet-900/50 dark:text-violet-200',
-            'bg-purple-100 text-purple-800 dark:bg-purple-900/50 dark:text-purple-200',
-            'bg-fuchsia-100 text-fuchsia-800 dark:bg-fuchsia-900/50 dark:text-fuchsia-200',
-            'bg-pink-100 text-pink-800 dark:bg-pink-900/50 dark:text-pink-200',
-            'bg-rose-100 text-rose-800 dark:bg-rose-900/50 dark:text-rose-200',
-          ];
-          
-          let hash = 0;
-          for (let i = 0; i < tag.length; i++) {
-            hash = tag.charCodeAt(i) + ((hash << 5) - hash);
-          }
-          const index = Math.abs(hash % colors.length);
-          return colors[index];
+        if (!tag)
+          return "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300";
+
+        const colors = [
+          "bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-200",
+          "bg-orange-100 text-orange-800 dark:bg-orange-900/50 dark:text-orange-200",
+          "bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-200",
+          "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-200",
+          "bg-lime-100 text-lime-800 dark:bg-lime-900/50 dark:text-lime-200",
+          "bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-200",
+          "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-200",
+          "bg-teal-100 text-teal-800 dark:bg-teal-900/50 dark:text-teal-200",
+          "bg-cyan-100 text-cyan-800 dark:bg-cyan-900/50 dark:text-cyan-200",
+          "bg-sky-100 text-sky-800 dark:bg-sky-900/50 dark:text-sky-200",
+          "bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-200",
+          "bg-indigo-100 text-indigo-800 dark:bg-indigo-900/50 dark:text-indigo-200",
+          "bg-violet-100 text-violet-800 dark:bg-violet-900/50 dark:text-violet-200",
+          "bg-purple-100 text-purple-800 dark:bg-purple-900/50 dark:text-purple-200",
+          "bg-fuchsia-100 text-fuchsia-800 dark:bg-fuchsia-900/50 dark:text-fuchsia-200",
+          "bg-pink-100 text-pink-800 dark:bg-pink-900/50 dark:text-pink-200",
+          "bg-rose-100 text-rose-800 dark:bg-rose-900/50 dark:text-rose-200",
+        ];
+
+        let hash = 0;
+        for (let i = 0; i < tag.length; i++) {
+          hash = tag.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        const index = Math.abs(hash % colors.length);
+        return colors[index];
       };
 
       window.renderTagsInModal = () => {
-          const container = document.getElementById("modal-tags-container");
-          container.innerHTML = "";
-          window.tempTags.forEach((tag, index) => {
-              const colorClass = window.getTagColor(tag);
-              const span = document.createElement("span");
-              span.className = `${colorClass} px-2 py-1 rounded-lg text-sm flex items-center gap-1 shadow-sm border border-transparent dark:border-white/10`;
-              span.innerHTML = `${tag} <button type="button" onclick="removeTag(${index})" class="opacity-60 hover:opacity-100 font-bold ml-1">&times;</button>`;
-              container.appendChild(span);
-          });
+        const container = document.getElementById("modal-tags-container");
+        container.innerHTML = "";
+        window.tempTags.forEach((tag, index) => {
+          const colorClass = window.getTagColor(tag);
+          const span = document.createElement("span");
+          span.className = `${colorClass} px-2 py-1 rounded-lg text-sm flex items-center gap-1 shadow-sm border border-transparent dark:border-white/10`;
+          span.innerHTML = `${tag} <button type="button" onclick="removeTag(${index})" class="opacity-60 hover:opacity-100 font-bold ml-1">&times;</button>`;
+          container.appendChild(span);
+        });
       };
 
       window.addTagFromInput = () => {
-          const input = document.getElementById("item-tag-input");
-          const val = input.value.trim();
-          if (val && !window.tempTags.includes(val)) {
-              window.tempTags.push(val);
-              renderTagsInModal();
-              input.value = "";
-          }
+        const input = document.getElementById("item-tag-input");
+        const val = input.value.trim();
+        if (val && !window.tempTags.includes(val)) {
+          window.tempTags.push(val);
+          renderTagsInModal();
+          input.value = "";
+        }
       };
 
       window.removeTag = (index) => {
-          window.tempTags.splice(index, 1);
-          renderTagsInModal();
+        window.tempTags.splice(index, 1);
+        renderTagsInModal();
       };
 
       // Global filter by clicking tag
       window.filterByTag = (tag) => {
-          // Set inventory filter
-          const select = document.getElementById("filter-category");
-          select.value = tag;
-          switchTab('inventory');
-          renderInventory();
-          // Also set Admin filter for consistency
-          const adminSelect = document.getElementById("admin-filter-category");
-          if(adminSelect) adminSelect.value = tag;
-      }
-      
+        // Set inventory filter
+        const select = document.getElementById("filter-category");
+        select.value = tag;
+        switchTab("inventory");
+        renderInventory();
+        // Also set Admin filter for consistency
+        const adminSelect = document.getElementById("admin-filter-category");
+        if (adminSelect) adminSelect.value = tag;
+      };
+
       window.clearFilter = () => {
-          const select = document.getElementById("filter-category");
-          select.value = "";
-          const adminSelect = document.getElementById("admin-filter-category");
-          if(adminSelect) adminSelect.value = "";
-          renderInventory();
-          if (document.getElementById("view-admin").classList.contains("hidden") === false) {
-             if (typeof renderAdminTable === 'function') renderAdminTable(); 
-          }
+        const select = document.getElementById("filter-category");
+        select.value = "";
+        const adminSelect = document.getElementById("admin-filter-category");
+        if (adminSelect) adminSelect.value = "";
+        renderInventory();
+        if (
+          document.getElementById("view-admin").classList.contains("hidden") ===
+          false
+        ) {
+          if (typeof renderAdminTable === "function") renderAdminTable();
+        }
       };
 
       function switchTab(tab) {
-        // Trigger silent update when switching tabs
-        if (typeof window.loadInitialData === 'function') {
-            window.loadInitialData(true);
-        }
-        
         // Scroll to top
         window.scrollTo(0, 0);
 
@@ -1205,32 +1341,50 @@
             "bg-pink-50",
             "text-pink-600",
             "dark:bg-pink-900/50",
-            "dark:text-pink-300"
+            "dark:text-pink-300",
           );
-        
+
           b.classList.add("text-gray-500", "dark:text-gray-400");
         });
 
-        const adminDropdown = document.getElementById('admin-dropdown');
-        if (adminDropdown) adminDropdown.classList.add('hidden');
+        const adminDropdown = document.getElementById("admin-dropdown");
+        if (adminDropdown) adminDropdown.classList.add("hidden");
 
         let btn;
-        if (['dashboard', 'admin', 'users'].includes(tab)) {
-            btn = document.getElementById('tab-admin-group'); 
+        if (["dashboard", "admin", "users"].includes(tab)) {
+          btn = document.getElementById("tab-admin-group");
         } else {
-            btn = document.getElementById(`tab-${tab}`);
+          btn = document.getElementById(`tab-${tab}`);
         }
-        
+
         if (btn) {
-            btn.classList.remove("text-gray-500", "dark:text-gray-400");
-            
-            if (tab === "verify") {
-                btn.classList.add("active-tab", "bg-yellow-50", "text-yellow-600", "dark:bg-yellow-900/50", "dark:text-yellow-300");
-            } else if (['dashboard', 'admin', 'users'].includes(tab)) {
-                btn.classList.add("active-tab", "bg-purple-50", "text-purple-600", "dark:bg-purple-900/50", "dark:text-purple-300");
-            } else {
-                btn.classList.add("active-tab", "bg-primary-50", "text-primary-600", "dark:bg-primary-900/50", "dark:text-primary-300");
-            }
+          btn.classList.remove("text-gray-500", "dark:text-gray-400");
+
+          if (tab === "verify") {
+            btn.classList.add(
+              "active-tab",
+              "bg-yellow-50",
+              "text-yellow-600",
+              "dark:bg-yellow-900/50",
+              "dark:text-yellow-300",
+            );
+          } else if (["dashboard", "admin", "users"].includes(tab)) {
+            btn.classList.add(
+              "active-tab",
+              "bg-purple-50",
+              "text-purple-600",
+              "dark:bg-purple-900/50",
+              "dark:text-purple-300",
+            );
+          } else {
+            btn.classList.add(
+              "active-tab",
+              "bg-primary-50",
+              "text-primary-600",
+              "dark:bg-primary-900/50",
+              "dark:text-primary-300",
+            );
+          }
         }
 
         [
@@ -1240,18 +1394,23 @@
           "history",
           "admin",
           "dashboard",
-          "users"
+          "users",
         ].forEach((v) => {
           const el = document.getElementById(`view-${v}`);
           if (el) el.classList.toggle("hidden", v !== tab);
         });
-        
-        if (tab === "users" && typeof renderUsers === 'function') renderUsers();
-        if (tab === "my-items" && typeof renderMyItems === 'function') renderMyItems();
-        if (tab === "history" && typeof renderHistory === 'function') renderHistory();
-        if (tab === "verify" && typeof renderVerify === 'function') renderVerify();
-        if (tab === "dashboard" && typeof renderDashboard === 'function') renderDashboard();
-        if (tab === "admin" && typeof renderAdminTable === 'function') renderAdminTable();
+
+        if (tab === "users" && typeof renderUsers === "function") renderUsers();
+        if (tab === "my-items" && typeof renderMyItems === "function")
+          renderMyItems();
+        if (tab === "history" && typeof renderHistory === "function")
+          renderHistory();
+        if (tab === "verify" && typeof renderVerify === "function")
+          renderVerify();
+        if (tab === "dashboard" && typeof renderDashboard === "function")
+          renderDashboard();
+        if (tab === "admin" && typeof renderAdminTable === "function")
+          renderAdminTable();
       }
 
       function toggleTheme() {
@@ -1270,24 +1429,24 @@
       }
 
       function openImageModal(src) {
-          if (!src || src.includes('placehold.co')) return;
-          const modal = document.getElementById('image-modal');
-          const img = document.getElementById('image-modal-content');
-          img.src = src;
-          modal.classList.remove('hidden');
-          setTimeout(() => {
-              img.classList.remove('scale-95');
-          }, 10);
+        if (!src || src.includes("placehold.co")) return;
+        const modal = document.getElementById("image-modal");
+        const img = document.getElementById("image-modal-content");
+        img.src = src;
+        modal.classList.remove("hidden");
+        setTimeout(() => {
+          img.classList.remove("scale-95");
+        }, 10);
       }
 
       function closeImageModal() {
-          const modal = document.getElementById('image-modal');
-          const img = document.getElementById('image-modal-content');
-          img.classList.add('scale-95');
-          setTimeout(() => {
-              modal.classList.add('hidden');
-              img.src = '';
-          }, 200);
+        const modal = document.getElementById("image-modal");
+        const img = document.getElementById("image-modal-content");
+        img.classList.add("scale-95");
+        setTimeout(() => {
+          modal.classList.add("hidden");
+          img.src = "";
+        }, 200);
       }
 
       function adjustQty(n) {
@@ -1309,102 +1468,68 @@
 
       window.DataService = {
         loadData: () => {
-          window.loadInitialData(); 
+          // Do nothing or re-init listeners if needed
+          console.log("Data is realtime.");
         },
         saveData: async () => true,
       };
 
-      // --- AUTO REFRESH LOGIC ---
-      window.startAutoRefresh = (seconds) => {
-          if (window.refreshTimerId) clearInterval(window.refreshTimerId);
-          
-          if (!seconds || seconds < 5) seconds = 30; // Minimum 5 seconds safety
-          
-          const originalRate = seconds;
-          let countdown = seconds;
-          
-          // console.log(`Auto refresh started: every ${seconds} seconds`);
-          
-          const timerEl = document.getElementById('refresh-timer');
-          if(timerEl) timerEl.innerText = countdown;
-          
-          window.refreshTimerId = setInterval(() => {
-              countdown--;
-              if(timerEl) timerEl.innerText = countdown;
-
-              if (countdown <= 0) {
-                   if (!document.hidden && document.getElementById('borrow-modal').classList.contains('hidden')) {
-                        // console.log("Auto-refreshing...");
-                        window.loadInitialData(true); // silent = true
-                   }
-                   countdown = originalRate;
-                   if(timerEl) timerEl.innerText = countdown;
-              }
-          }, 1000);
-      };
-
-      // --- MANUAL DATA FETCHING ---
-      window.loadInitialData = async (silent = false) => {
-          if (!silent) window.showLoading("กำลังโหลดข้อมูล...");
-          
-          const role = window.currentUser.role;
-          const canManage = role === 'admin' || role === 'assistant';
-
-          try {
-            const invSnap = await getDocs(collection(db, "inventory"));
-            const newInventoryData = invSnap.docs.map((doc) => ({
+      // --- REALTIME LISTENERS ---
+      function startRealtimeListeners() {
+        // Inventory Listener
+        if (unsubscribeInventory) unsubscribeInventory();
+        unsubscribeInventory = onSnapshot(
+          collection(db, "inventory"),
+          (snapshot) => {
+            window.inventoryData = snapshot.docs.map((doc) => ({
               id: doc.id,
               ...doc.data(),
             }));
-
-            const logSnap = await getDocs(collection(db, "logs"));
-            const newTransactionLogs = logSnap.docs.map((doc) => ({
-              id: doc.id,
-              ...doc.data(),
-            }));
-
-            // DEEP COMPARISON TO PREVENT FLICKER
-            if (silent) {
-                const isInvChanged = JSON.stringify(newInventoryData) !== JSON.stringify(window.inventoryData);
-                const isLogsChanged = JSON.stringify(newTransactionLogs) !== JSON.stringify(window.transactionLogs);
-                
-                if (!isInvChanged && !isLogsChanged) {
-                    console.log("Data identical, skipping render");
-                    return; // EXIT EARLY
-                }
-            }
-
-            // Update Global State
-            window.inventoryData = newInventoryData;
-            window.transactionLogs = newTransactionLogs;
-
             renderInventory();
             populateCategories();
-            renderHistory();
-            renderMyItems();
-
-            if (canManage) {
-                renderAdminTable();
-                renderVerify();
-                renderDashboard();
-                
-                if (role === 'admin') {
-                   const userSnap = await getDocs(collection(db, "users"));
-                   window.usersData = userSnap.docs.map((doc) => ({
-                       id: doc.id,
-                       ...doc.data()
-                   }));
-                   renderUsers();
-                }
+            if (
+              window.currentUser &&
+              (window.currentUser.role === "admin" ||
+                window.currentUser.role === "assistant")
+            ) {
+              if (typeof renderAdminTable === "function") renderAdminTable();
+              if (typeof renderDashboard === "function") renderDashboard();
             }
+          },
+        );
 
-          } catch (error) {
-            console.error("Load Data Error:", error);
-            if (!silent) Swal.fire("Error", "ไม่สามารถโหลดข้อมูลได้", "error");
-          } finally {
-            if (!silent) window.hideLoading();
+        // Logs Listener
+        if (unsubscribeLogs) unsubscribeLogs();
+        unsubscribeLogs = onSnapshot(collection(db, "logs"), (snapshot) => {
+          window.transactionLogs = snapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+          }));
+          renderHistory();
+          renderMyItems();
+          if (
+            window.currentUser &&
+            (window.currentUser.role === "admin" ||
+              window.currentUser.role === "assistant")
+          ) {
+            if (typeof renderVerify === "function") renderVerify();
+            if (typeof renderDashboard === "function") renderDashboard();
           }
-      };
+        });
+
+        // Users Listener (Admin Only)
+        if (window.currentUser.role === "admin") {
+          if (unsubscribeUsers) unsubscribeUsers();
+          unsubscribeUsers = onSnapshot(collection(db, "users"), (snapshot) => {
+            window.usersData = snapshot.docs.map((doc) => ({
+              id: doc.id,
+              ...doc.data(),
+            }));
+            if (typeof renderUsers === "function") renderUsers();
+            if (typeof renderDashboard === "function") renderDashboard();
+          });
+        }
+      }
 
       // --- AUTH ---
       window.login = async (e) => {
@@ -1416,17 +1541,20 @@
         window.showLoading("กำลังเข้าสู่ระบบ...");
 
         try {
-          let ipAddress = 'Unknown';
+          let ipAddress = "Unknown";
           try {
-             const ipRes = await fetch('https://api.ipify.org?format=json');
-             if(ipRes.ok) {
-                 const ipJson = await ipRes.json();
-                 ipAddress = ipJson.ip;
-             }
-          } catch(err) {}
+            const ipRes = await fetch("https://api.ipify.org?format=json");
+            if (ipRes.ok) {
+              const ipJson = await ipRes.json();
+              ipAddress = ipJson.ip;
+            }
+          } catch (err) {}
 
           const userAgent = navigator.userAgent;
-          const q = query(collection(db, "users"), where("empId", "==", inputId));
+          const q = query(
+            collection(db, "users"),
+            where("empId", "==", inputId),
+          );
           const querySnapshot = await getDocs(q);
 
           let userData = null;
@@ -1438,25 +1566,28 @@
             userDocId = userDoc.id;
 
             if (userData.isBlocked) {
-                window.hideLoading();
-                Swal.fire({
-                    icon: 'error',
-                    title: 'บัญชีถูกระงับ',
-                    text: 'กรุณาติดต่อผู้ดูแลระบบ (Admin)',
-                    confirmButtonText: 'รับทราบ'
-                });
-                return;
+              window.hideLoading();
+              Swal.fire({
+                icon: "error",
+                title: "บัญชีถูกระงับ",
+                text: "กรุณาติดต่อผู้ดูแลระบบ (Admin)",
+                confirmButtonText: "รับทราบ",
+              });
+              return;
             }
 
-            await setDoc(doc(db, "users", userDocId), {
-                name: inputName || userData.name, 
+            await setDoc(
+              doc(db, "users", userDocId),
+              {
+                name: inputName || userData.name,
                 lastLogin: new Date().toISOString(),
                 lastLoginIp: ipAddress,
-                userAgent: userAgent
-            }, { merge: true });
+                userAgent: userAgent,
+              },
+              { merge: true },
+            );
 
             userData.name = inputName || userData.name;
-
           } else {
             const newUser = {
               empId: inputId,
@@ -1464,12 +1595,12 @@
               role: inputId === "9999" ? "admin" : "user",
               createdAt: new Date().toISOString(),
               lastLogin: new Date().toISOString(),
-              lastLoginIp: ipAddress, 
+              lastLoginIp: ipAddress,
               userAgent: userAgent,
               isBlocked: false,
-              refreshRate: 30
+              refreshRate: 30,
             };
-            
+
             const docRef = await addDoc(collection(db, "users"), newUser);
             userData = newUser;
             userDocId = docRef.id;
@@ -1479,23 +1610,24 @@
             docId: userDocId,
             empId: userData.empId,
             name: userData.name,
-            role: userData.role || 'user', 
+            role: userData.role || "user",
             isBlocked: userData.isBlocked || false,
-            refreshRate: userData.refreshRate || 30
+            refreshRate: userData.refreshRate || 30,
           };
 
           localStorage.setItem("ems_user_fb", JSON.stringify(user));
           window.hideLoading();
           initApp(user);
-          
         } catch (err) {
           console.error(err);
           window.hideLoading();
           Swal.fire("Login Error", "ตรวจสอบการเชื่อมต่ออินเทอร์เน็ต", "error");
         }
       };
-      
-      document.getElementById("login-form").addEventListener("submit", window.login);
+
+      document
+        .getElementById("login-form")
+        .addEventListener("submit", window.login);
 
       window.logout = () => {
         localStorage.removeItem("ems_user_fb");
@@ -1505,16 +1637,20 @@
 
       async function initApp(user) {
         if (user.isBlocked) {
-             Swal.fire({ icon: 'error', title: 'บัญชีถูกระงับ', text: 'กรุณาติดต่อผู้ดูแลระบบ' }).then(() => window.logout());
-            return;
+          Swal.fire({
+            icon: "error",
+            title: "บัญชีถูกระงับ",
+            text: "กรุณาติดต่อผู้ดูแลระบบ",
+          }).then(() => window.logout());
+          return;
         }
 
         window.currentUser = user;
         document.getElementById("user-display-name").innerText = user.name;
-        
+
         let roleText = "User";
-        if (user.role === 'admin') roleText = "Admin";
-        else if (user.role === 'assistant') roleText = "ผู้ช่วย Admin";
+        if (user.role === "admin") roleText = "Admin";
+        else if (user.role === "assistant") roleText = "ผู้ช่วย Admin";
         document.getElementById("user-display-role").innerText = roleText;
 
         const mobileName = document.getElementById("mobile-user-name");
@@ -1523,59 +1659,55 @@
         if (mobileRole) mobileRole.innerText = roleText;
 
         const iconBg = document.getElementById("user-role-icon-bg");
-        iconBg.className = "w-9 h-9 rounded-full border-2 border-white dark:border-gray-600 flex items-center justify-center ";
-        if (user.role === 'admin') {
-            iconBg.className += "bg-red-100 text-red-600 dark:bg-red-900 dark:text-red-300";
-        } else if (user.role === 'assistant') {
-            iconBg.className += "bg-orange-100 text-orange-600 dark:bg-orange-900 dark:text-orange-300";
+        iconBg.className =
+          "w-9 h-9 rounded-full border-2 border-white dark:border-gray-600 flex items-center justify-center ";
+        if (user.role === "admin") {
+          iconBg.className +=
+            "bg-red-100 text-red-600 dark:bg-red-900 dark:text-red-300";
+        } else if (user.role === "assistant") {
+          iconBg.className +=
+            "bg-orange-100 text-orange-600 dark:bg-orange-900 dark:text-orange-300";
         } else {
-            iconBg.className += "bg-primary-100 text-primary-600 dark:bg-primary-900 dark:text-primary-300";
+          iconBg.className +=
+            "bg-primary-100 text-primary-600 dark:bg-primary-900 dark:text-primary-300";
         }
 
         const adminGroup = document.getElementById("admin-menu-container");
         const verifyTab = document.getElementById("tab-verify");
         const btnMenuUsers = document.getElementById("btn-menu-users");
-        
-        const isSuperAdmin = user.role === 'admin';
-        const isAssistant = user.role === 'assistant';
+
+        // ADDED: Logic to control History tab visibility in Navbar
+        const historyTab = document.getElementById("tab-history");
+
+        const isSuperAdmin = user.role === "admin";
+        const isAssistant = user.role === "assistant";
         const canManageStock = isSuperAdmin || isAssistant;
 
         if (canManageStock) {
           adminGroup.classList.remove("hidden");
           verifyTab.classList.remove("hidden");
+          // Show History tab in navbar for Admin/Assistant
+          if (historyTab) historyTab.classList.remove("hidden");
         } else {
           adminGroup.classList.add("hidden");
           verifyTab.classList.add("hidden");
+          // Hide History tab in navbar for regular Users
+          if (historyTab) historyTab.classList.add("hidden");
         }
 
         if (isSuperAdmin) {
-            btnMenuUsers.classList.remove("hidden");
+          btnMenuUsers.classList.remove("hidden");
         } else {
-            btnMenuUsers.classList.add("hidden");
+          btnMenuUsers.classList.add("hidden");
         }
 
         document.getElementById("login-screen").classList.add("hidden");
         document.getElementById("app-screen").classList.remove("hidden");
 
         renderSkeleton();
-        
-        await window.loadInitialData();
-        
-        try {
-            const userDocRef = doc(db, "users", user.docId);
-            const userDocSnap = await getDoc(userDocRef);
-            if (userDocSnap.exists()) {
-                const freshUserData = userDocSnap.data();
-                const rate = freshUserData.refreshRate || 30;
-                window.currentUser.refreshRate = rate; 
-                window.startAutoRefresh(rate);
-            } else {
-                window.startAutoRefresh(30); 
-            }
-        } catch (e) {
-            console.error("Failed to fetch user config", e);
-            window.startAutoRefresh(30);
-        }
+
+        // Start Realtime
+        startRealtimeListeners();
 
         switchTab("inventory");
       }
@@ -1583,8 +1715,8 @@
       function renderSkeleton() {
         const grid = document.getElementById("inventory-grid");
         grid.innerHTML = "";
-        for(let i=0; i<10; i++) {
-            grid.innerHTML += `
+        for (let i = 0; i < 10; i++) {
+          grid.innerHTML += `
                 <div class="bg-white dark:bg-dark-card rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 flex flex-row md:flex-col h-auto md:h-full animate-pulse overflow-hidden">
                     <div class="w-1/3 md:w-full h-auto md:h-40 bg-gray-200 dark:bg-gray-700"></div>
                     <div class="p-4 flex flex-col flex-1 w-2/3 md:w-full">
@@ -1605,11 +1737,13 @@
         window.currentBorrowItemId = id;
         document.getElementById("borrow-item-name").innerText = item.name;
         document.getElementById("borrow-item-max").innerText = item.remaining;
-        
+
         const imgPreview = document.getElementById("borrow-img-preview");
         imgPreview.src = item.image || "https://placehold.co/100";
-        imgPreview.onclick = function() { window.openImageModal(this.src); };
-        
+        imgPreview.onclick = function () {
+          window.openImageModal(this.src);
+        };
+
         document.getElementById("borrow-qty").max = item.remaining;
         document.getElementById("borrow-qty").value = 1;
         document.getElementById("borrow-modal").classList.remove("hidden");
@@ -1619,28 +1753,28 @@
         const qty = parseInt(document.getElementById("borrow-qty").value);
         const itemId = window.currentBorrowItemId;
         const btn = document.getElementById("btn-confirm-borrow");
-        
+
         btn.disabled = true;
         btn.innerText = "กำลังประมวลผล...";
 
         try {
           const borrowDate = new Date().toISOString();
-          const newLogId = "temp_" + Date.now(); 
+          const newLogId = "temp_" + Date.now();
 
           await runTransaction(db, async (transaction) => {
             const itemRef = doc(db, "inventory", itemId);
             const itemDoc = await transaction.get(itemRef);
             if (!itemDoc.exists()) throw new Error("ItemNotFound");
-            
+
             const currentItemData = itemDoc.data();
             const currentRemaining = currentItemData.remaining;
 
             if (currentRemaining < qty) {
-                throw new Error("OutOfStock"); 
+              throw new Error("OutOfStock");
             }
 
             transaction.update(itemRef, { remaining: currentRemaining - qty });
-            
+
             const newLogRef = doc(collection(db, "logs"));
             transaction.set(newLogRef, {
               itemId: itemId,
@@ -1654,28 +1788,8 @@
             });
           });
 
-          // SUCCESS
-          const localItemIndex = window.inventoryData.findIndex(i => i.id == itemId);
-          if (localItemIndex > -1) {
-              window.inventoryData[localItemIndex].remaining -= qty;
-          }
+          // SUCCESS - Realtime listener will update UI automatically
 
-          const localItemName = window.inventoryData[localItemIndex] ? window.inventoryData[localItemIndex].name : "Unknown Item";
-          window.transactionLogs.push({
-              id: newLogId, 
-              itemId: itemId,
-              itemName: localItemName,
-              borrowerName: window.currentUser.name,
-              empId: window.currentUser.empId,
-              borrowDate: borrowDate,
-              status: "borrowed",
-              qty: qty,
-              returnDate: null
-          });
-
-          renderInventory();
-          renderMyItems();
-          
           closeModal("borrow-modal");
           Swal.fire({
             icon: "success",
@@ -1684,19 +1798,21 @@
             timer: 1500,
             showConfirmButton: false,
           });
-
         } catch (e) {
           console.error("Borrow Error:", e);
           closeModal("borrow-modal");
-          
+
           let title = "ไม่สามารถทำรายการได้";
           let text = "เกิดข้อผิดพลาดบางอย่าง กรุณาลองใหม่";
-          
-          if (e.message === "OutOfStock" || e.toString().includes("OutOfStock")) {
-              title = "เสียใจด้วยครับ ของหมดแล้ว";
-              text = "มีผู้ใช้งานท่านอื่นยืมไปก่อนหน้านี้เพียงครู่เดียว ระบบกำลังอัพเดตข้อมูลล่าสุด...";
+
+          if (
+            e.message === "OutOfStock" ||
+            e.toString().includes("OutOfStock")
+          ) {
+            title = "เสียใจด้วยครับ ของหมดแล้ว";
+            text = "มีผู้ใช้งานท่านอื่นยืมไปก่อนหน้านี้เพียงครู่เดียว";
           } else if (e.message === "ItemNotFound") {
-              text = "ไม่พบข้อมูลอุปกรณ์ในระบบ";
+            text = "ไม่พบข้อมูลอุปกรณ์ในระบบ";
           }
 
           await Swal.fire({
@@ -1706,11 +1822,8 @@
             timer: 4000,
             timerProgressBar: true,
             showConfirmButton: true,
-            confirmButtonText: "ตกลง"
+            confirmButtonText: "ตกลง",
           });
-          
-          window.loadInitialData(); 
-          
         } finally {
           btn.disabled = false;
           btn.innerText = "ยืนยัน";
@@ -1730,10 +1843,7 @@
             await updateDoc(doc(db, "logs", logId), {
               status: "pending_return",
             });
-            const log = window.transactionLogs.find(l => l.id === logId);
-            if (log) log.status = "pending_return";
-            renderMyItems();
-            renderHistory();
+            // Realtime listener updates UI
           } catch (e) {
             console.error(e);
           }
@@ -1758,14 +1868,11 @@
               batch.update(doc(db, "logs", log.id), {
                 status: "pending_return",
               });
-              log.status = "pending_return";
               count++;
             }
           });
           if (count > 0) {
-              await batch.commit();
-              renderMyItems();
-              renderHistory();
+            await batch.commit();
           }
         }
       };
@@ -1779,21 +1886,18 @@
             const logData = logDoc.data();
             const itemRef = doc(db, "inventory", logData.itemId);
             const itemDoc = await transaction.get(itemRef);
-            
+
             transaction.update(logRef, {
               status: "returned",
               returnDate: new Date().toISOString(),
             });
-            
+
             if (itemDoc.exists()) {
               transaction.update(itemRef, {
                 remaining: (itemDoc.data().remaining || 0) + logData.qty,
               });
             }
           });
-          
-          window.loadInitialData(true);
-          
         } catch (e) {
           Swal.fire("Error", e.toString(), "error");
         }
@@ -1825,8 +1929,17 @@
           try {
             await deleteDoc(doc(db, "logs", logId));
             window.selectedLogIds.delete(logId);
-            window.transactionLogs = window.transactionLogs.filter(l => l.id !== logId);
-            renderHistory();
+
+            // Clear selection logic if needed
+            if (window.selectedLogIds.size === 0) {
+              document
+                .getElementById("history-action-area")
+                .classList.add("hidden");
+              document
+                .getElementById("history-action-area")
+                .classList.remove("flex");
+            }
+
             Swal.fire({
               icon: "success",
               title: "ลบเรียบร้อย",
@@ -1847,7 +1960,7 @@
       window.deleteSelectedLogs = async () => {
         const checkboxes = document.querySelectorAll(".log-checkbox:checked");
         const idsToDelete = new Set([...window.selectedLogIds]);
-        checkboxes.forEach(cb => idsToDelete.add(cb.value));
+        checkboxes.forEach((cb) => idsToDelete.add(cb.value));
 
         if (idsToDelete.size === 0) {
           Swal.fire("แจ้งเตือน", "กรุณาเลือกรายการที่ต้องการลบ", "warning");
@@ -1870,13 +1983,15 @@
               batch.delete(ref);
             });
             await batch.commit();
-            
-            window.transactionLogs = window.transactionLogs.filter(l => !idsToDelete.has(l.id));
+
             window.selectedLogIds.clear();
-            document.getElementById('history-action-area').classList.add('hidden');
-            document.getElementById('history-action-area').classList.remove('flex');
-            renderHistory();
-            
+            document
+              .getElementById("history-action-area")
+              .classList.add("hidden");
+            document
+              .getElementById("history-action-area")
+              .classList.remove("flex");
+
             Swal.fire({
               icon: "success",
               title: "ลบเรียบร้อย",
@@ -1890,110 +2005,123 @@
       };
 
       window.toggleLogSelection = (id, cardElement) => {
-          const btnArea = document.getElementById('history-action-area');
-          const selectionCount = document.getElementById('selection-count');
-          
-          if (window.selectedLogIds.has(id)) {
-              window.selectedLogIds.delete(id);
-              cardElement.classList.remove('card-selected', 'ring-2', 'ring-primary-500');
-          } else {
-              window.selectedLogIds.add(id);
-              cardElement.classList.add('card-selected', 'ring-2', 'ring-primary-500');
-          }
-          
-          if (window.selectedLogIds.size > 0) {
-              btnArea.classList.remove('hidden');
-              btnArea.classList.add('flex');
-              selectionCount.innerText = `${window.selectedLogIds.size} รายการ`;
-          } else {
-              btnArea.classList.add('hidden');
-              btnArea.classList.remove('flex');
-          }
+        const btnArea = document.getElementById("history-action-area");
+        const selectionCount = document.getElementById("selection-count");
+
+        if (window.selectedLogIds.has(id)) {
+          window.selectedLogIds.delete(id);
+          cardElement.classList.remove(
+            "card-selected",
+            "ring-2",
+            "ring-primary-500",
+          );
+        } else {
+          window.selectedLogIds.add(id);
+          cardElement.classList.add(
+            "card-selected",
+            "ring-2",
+            "ring-primary-500",
+          );
+        }
+
+        if (window.selectedLogIds.size > 0) {
+          btnArea.classList.remove("hidden");
+          btnArea.classList.add("flex");
+          selectionCount.innerText = `${window.selectedLogIds.size} รายการ`;
+        } else {
+          btnArea.classList.add("hidden");
+          btnArea.classList.remove("flex");
+        }
       };
 
       window.toggleSelectAllMobile = () => {
-          const canManage = window.currentUser.role === 'admin' || window.currentUser.role === 'assistant';
-          let logs = window.transactionLogs;
-          if (!canManage) logs = logs.filter((l) => l.empId == window.currentUser.empId);
-          
-          const allSelected = logs.every(log => window.selectedLogIds.has(log.id));
-          
-          if (allSelected) {
-              window.selectedLogIds.clear();
-              document.getElementById('select-all-text').innerText = "เลือกทั้งหมด";
-          } else {
-              logs.forEach(log => window.selectedLogIds.add(log.id));
-              document.getElementById('select-all-text').innerText = "ยกเลิกเลือก";
-          }
-          
-          renderHistory();
-          
-          const btnArea = document.getElementById('history-action-area');
-          const selectionCount = document.getElementById('selection-count');
-          
-          if (window.selectedLogIds.size > 0) {
-              btnArea.classList.remove('hidden');
-              btnArea.classList.add('flex');
-              selectionCount.innerText = `${window.selectedLogIds.size} รายการ`;
-          } else {
-              btnArea.classList.add('hidden');
-              btnArea.classList.remove('flex');
-          }
+        const canManage =
+          window.currentUser.role === "admin" ||
+          window.currentUser.role === "assistant";
+        let logs = window.transactionLogs;
+        if (!canManage)
+          logs = logs.filter((l) => l.empId == window.currentUser.empId);
+
+        const allSelected = logs.every((log) =>
+          window.selectedLogIds.has(log.id),
+        );
+
+        if (allSelected) {
+          window.selectedLogIds.clear();
+          document.getElementById("select-all-text").innerText = "เลือกทั้งหมด";
+        } else {
+          logs.forEach((log) => window.selectedLogIds.add(log.id));
+          document.getElementById("select-all-text").innerText = "ยกเลิกเลือก";
+        }
+
+        renderHistory();
+
+        const btnArea = document.getElementById("history-action-area");
+        const selectionCount = document.getElementById("selection-count");
+
+        if (window.selectedLogIds.size > 0) {
+          btnArea.classList.remove("hidden");
+          btnArea.classList.add("flex");
+          selectionCount.innerText = `${window.selectedLogIds.size} รายการ`;
+        } else {
+          btnArea.classList.add("hidden");
+          btnArea.classList.remove("flex");
+        }
       };
 
       window.changeUserRole = async (userId, selectElement) => {
-          const newRole = selectElement.value;
-          try {
-             await updateDoc(doc(db, "users", userId), { role: newRole });
-             Swal.fire({
-                 icon: 'success',
-                 title: 'เปลี่ยนสิทธิ์สำเร็จ',
-                 toast: true,
-                 position: 'top-end',
-                 timer: 2000,
-                 showConfirmButton: false
-             });
-          } catch(e) {
-             Swal.fire('Error', e.message, 'error');
-          }
-      }
+        const newRole = selectElement.value;
+        try {
+          await updateDoc(doc(db, "users", userId), { role: newRole });
+          Swal.fire({
+            icon: "success",
+            title: "เปลี่ยนสิทธิ์สำเร็จ",
+            toast: true,
+            position: "top-end",
+            timer: 2000,
+            showConfirmButton: false,
+          });
+        } catch (e) {
+          Swal.fire("Error", e.message, "error");
+        }
+      };
 
       window.toggleUserBlock = async (userId, currentBlockStatus) => {
-          const newStatus = !currentBlockStatus;
-          const actionText = newStatus ? "ระงับ (Block)" : "ปลดบล็อค";
-          const result = await Swal.fire({
-              title: `${actionText}?`,
-              text: newStatus ? "ผู้ใช้จะไม่สามารถเข้าสู่ระบบได้" : "ผู้ใช้จะสามารถเข้าใช้งานได้ตามปกติ",
-              icon: 'warning',
-              showCancelButton: true,
-              confirmButtonText: actionText,
-              confirmButtonColor: newStatus ? '#ef4444' : '#22c55e'
-          });
-          
-          if(result.isConfirmed) {
-              try {
-                  await updateDoc(doc(db, "users", userId), { isBlocked: newStatus });
-                  const u = window.usersData.find(u => u.id === userId);
-                  if(u) u.isBlocked = newStatus;
-                  renderUsers();
-                  Swal.fire({
-                     icon: 'success',
-                     title: 'ดำเนินการเรียบร้อย',
-                     toast: true,
-                     position: 'top-end',
-                     timer: 2000,
-                     showConfirmButton: false
-                 });
-              } catch(e) {
-                  Swal.fire('Error', e.message, 'error');
-              }
+        const newStatus = !currentBlockStatus;
+        const actionText = newStatus ? "ระงับ (Block)" : "ปลดบล็อค";
+        const result = await Swal.fire({
+          title: `${actionText}?`,
+          text: newStatus
+            ? "ผู้ใช้จะไม่สามารถเข้าสู่ระบบได้"
+            : "ผู้ใช้จะสามารถเข้าใช้งานได้ตามปกติ",
+          icon: "warning",
+          showCancelButton: true,
+          confirmButtonText: actionText,
+          confirmButtonColor: newStatus ? "#ef4444" : "#22c55e",
+        });
+
+        if (result.isConfirmed) {
+          try {
+            await updateDoc(doc(db, "users", userId), { isBlocked: newStatus });
+            // Realtime listener will handle UI update
+            Swal.fire({
+              icon: "success",
+              title: "ดำเนินการเรียบร้อย",
+              toast: true,
+              position: "top-end",
+              timer: 2000,
+              showConfirmButton: false,
+            });
+          } catch (e) {
+            Swal.fire("Error", e.message, "error");
           }
-      }
+        }
+      };
 
       window.showDeviceInfo = (name, ip, agent, lastLogin) => {
-          Swal.fire({
-              title: 'ข้อมูลการใช้งานล่าสุด',
-              html: `
+        Swal.fire({
+          title: "ข้อมูลการใช้งานล่าสุด",
+          html: `
                   <div class="text-left text-sm space-y-3 p-2">
                       <div>
                           <p class="text-gray-500 font-bold text-xs uppercase">ผู้ใช้งาน</p>
@@ -2001,86 +2129,55 @@
                       </div>
                       <div>
                           <p class="text-gray-500 font-bold text-xs uppercase">เวลาเข้าสู่ระบบล่าสุด</p>
-                          <p class="text-gray-800 dark:text-gray-200">${new Date(lastLogin).toLocaleString('th-TH')}</p>
+                          <p class="text-gray-800 dark:text-gray-200">${new Date(lastLogin).toLocaleString("th-TH")}</p>
                       </div>
                       <div>
                           <p class="text-gray-500 font-bold text-xs uppercase">IP Address</p>
-                          <p class="font-mono bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded inline-block">${ip || 'Unknown'}</p>
+                          <p class="font-mono bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded inline-block">${ip || "Unknown"}</p>
                       </div>
                       <div>
                           <p class="text-gray-500 font-bold text-xs uppercase">Browser / Device</p>
-                          <p class="text-xs text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700 rounded p-2 bg-gray-50 dark:bg-gray-800 mt-1">${agent || 'Unknown'}</p>
+                          <p class="text-xs text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700 rounded p-2 bg-gray-50 dark:bg-gray-800 mt-1">${agent || "Unknown"}</p>
                       </div>
                   </div>
               `,
-              confirmButtonText: 'ปิด'
-          });
-      }
-      
-      window.saveUserRefreshRate = async (userId, inputElement) => {
-          let val = parseInt(inputElement.value);
-          if (!val || val < 5) {
-              val = 5; 
-              inputElement.value = 5;
-          }
-          
-          try {
-              await updateDoc(doc(db, "users", userId), { refreshRate: val });
-              
-              if (userId === window.currentUser.docId) {
-                  window.currentUser.refreshRate = val;
-                  window.startAutoRefresh(val);
-              }
-              
-              const toast = Swal.mixin({
-                toast: true,
-                position: 'top-end',
-                showConfirmButton: false,
-                timer: 2000,
-                timerProgressBar: true
-              });
-              toast.fire({ icon: 'success', title: 'บันทึกเวลา Refresh เรียบร้อย' });
-              
-          } catch (e) {
-              console.error(e);
-              Swal.fire("Error", "ไม่สามารถบันทึกค่าได้", "error");
-          }
+          confirmButtonText: "ปิด",
+        });
       };
 
       window.deleteUser = async (userId) => {
         const result = await Swal.fire({
-            title: 'ลบผู้ใช้งาน?',
-            text: 'คำเตือน: การลบผู้ใช้งานอาจทำให้ประวัติการยืมคืนในอดีตของผู้ใช้นี้อ้างอิงไม่ถูกต้อง',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            confirmButtonText: 'ยืนยันลบถาวร',
-            cancelButtonText: 'ยกเลิก'
+          title: "ลบผู้ใช้งาน?",
+          text: "คำเตือน: การลบผู้ใช้งานอาจทำให้ประวัติการยืมคืนในอดีตของผู้ใช้นี้อ้างอิงไม่ถูกต้อง",
+          icon: "warning",
+          showCancelButton: true,
+          confirmButtonColor: "#d33",
+          confirmButtonText: "ยืนยันลบถาวร",
+          cancelButtonText: "ยกเลิก",
         });
 
         if (result.isConfirmed) {
-            try {
-                await deleteDoc(doc(db, "users", userId));
-                window.usersData = window.usersData.filter(u => u.id !== userId);
-                renderUsers();
-                Swal.fire({
-                     icon: 'success',
-                     title: 'ลบผู้ใช้งานเรียบร้อย',
-                     toast: true,
-                     position: 'top-end',
-                     timer: 2000,
-                     showConfirmButton: false
-                 });
-            } catch(e) {
-                Swal.fire('Error', 'ไม่สามารถลบได้: ' + e.message, 'error');
-            }
+          try {
+            await deleteDoc(doc(db, "users", userId));
+            // Realtime update
+            Swal.fire({
+              icon: "success",
+              title: "ลบผู้ใช้งานเรียบร้อย",
+              toast: true,
+              position: "top-end",
+              timer: 2000,
+              showConfirmButton: false,
+            });
+          } catch (e) {
+            Swal.fire("Error", "ไม่สามารถลบได้: " + e.message, "error");
+          }
         }
-      }
+      };
 
       // --- GAS UPLOAD HELPER ---
       async function uploadImageToGAS(base64Data, fileName) {
         if (!base64Data || !base64Data.startsWith("data:image")) {
-          return base64Data; 
+          return base64Data;
         }
 
         const response = await fetch(GAS_API_URL, {
@@ -2092,12 +2189,12 @@
           body: JSON.stringify({
             action: "uploadImage",
             image: base64Data,
-            name: fileName
-          })
+            name: fileName,
+          }),
         });
 
         if (!response.ok) throw new Error("Network response was not ok");
-        
+
         const result = await response.json();
         if (result.status === "success") return result.url;
         throw new Error(result.message || "Upload to Google Drive failed");
@@ -2117,13 +2214,18 @@
           const sourceType = document.querySelector(
             'input[name="img-source"]:checked',
           ).value;
-          
+
           let image = "";
           try {
             if (sourceType === "file") {
-              const base64 = document.getElementById("item-image-temp-base64").value;
+              const base64 = document.getElementById(
+                "item-image-temp-base64",
+              ).value;
               if (base64 && base64.startsWith("data:image")) {
-                image = await uploadImageToGAS(base64, `${name}_${Date.now()}.jpg`);
+                image = await uploadImageToGAS(
+                  base64,
+                  `${name}_${Date.now()}.jpg`,
+                );
               } else {
                 image = document.getElementById("item-image-preview").src;
               }
@@ -2131,16 +2233,16 @@
               const url = document.getElementById("item-image-url").value;
               image = window.formatGoogleDriveLink(url);
             }
-            
+
             if (!image || image.includes("placehold.co") || image === "") {
-               image = "https://placehold.co/300x200?text=No+Image";
+              image = "https://placehold.co/300x200?text=No+Image";
             }
 
-            const itemData = { 
-                name, 
-                category: window.tempTags, 
-                stock, 
-                image 
+            const itemData = {
+              name,
+              category: window.tempTags,
+              stock,
+              image,
             };
 
             if (id) {
@@ -2152,8 +2254,8 @@
               itemData.remaining = stock;
               await addDoc(collection(db, "inventory"), itemData);
             }
-            
-            await window.loadInitialData(true);
+
+            // No manual reload needed
 
             closeModal("item-modal");
             Swal.fire({
@@ -2164,7 +2266,11 @@
             });
           } catch (error) {
             console.error("Save Error:", error);
-            Swal.fire("เกิดข้อผิดพลาด", error.message || "ไม่สามารถอัปโหลดรูปภาพได้", "error");
+            Swal.fire(
+              "เกิดข้อผิดพลาด",
+              error.message || "ไม่สามารถอัปโหลดรูปภาพได้",
+              "error",
+            );
           } finally {
             window.hideLoading();
           }
@@ -2183,21 +2289,26 @@
         .getElementById("item-image-url")
         .addEventListener("input", (e) => {
           if (e.target.value)
-            document.getElementById("item-image-preview").src = window.formatGoogleDriveLink(e.target.value);
+            document.getElementById("item-image-preview").src =
+              window.formatGoogleDriveLink(e.target.value);
         });
 
       window.openAddModal = () => {
-        document.getElementById("item-modal-title").innerText = "เพิ่มอุปกรณ์ใหม่";
+        document.getElementById("item-modal-title").innerText =
+          "เพิ่มอุปกรณ์ใหม่";
         document.getElementById("item-form").reset();
         document.getElementById("item-id").value = "";
         document.getElementById("item-image-temp-base64").value = "";
-        document.getElementById("item-image-preview").src = "https://placehold.co/100?text=Preview";
-        document.querySelector('input[name="img-source"][value="file"]').checked = true;
+        document.getElementById("item-image-preview").src =
+          "https://placehold.co/100?text=Preview";
+        document.querySelector(
+          'input[name="img-source"][value="file"]',
+        ).checked = true;
         window.toggleImageSource("file");
-        
+
         window.tempTags = [];
         window.renderTagsInModal();
-        
+
         document.getElementById("item-modal").classList.remove("hidden");
       };
 
@@ -2207,13 +2318,13 @@
         document.getElementById("item-id").value = id;
         document.getElementById("item-name").value = item.name;
         document.getElementById("item-stock").value = item.stock;
-        document.getElementById("item-image-temp-base64").value = ""; 
+        document.getElementById("item-image-temp-base64").value = "";
 
         const isUrl =
           item.image &&
           item.image.startsWith("http") &&
           !item.image.startsWith("data:");
-        
+
         document.querySelector(
           `input[name="img-source"][value="${isUrl ? "url" : "file"}"]`,
         ).checked = true;
@@ -2225,7 +2336,7 @@
 
         document.getElementById("item-image-preview").src =
           item.image || "https://placehold.co/100";
-          
+
         window.tempTags = window.getCategoryArray(item);
         window.renderTagsInModal();
 
@@ -2245,11 +2356,18 @@
 
         if (result.isConfirmed) {
           window.showLoading("กำลังลบข้อมูล...");
-          
+
           try {
-            if (item && item.image && (item.image.includes("drive.google.com") || item.image.includes("googleusercontent.com/d/"))) {
-              const fileId = item.image.match(/id=([-\w]{25,})|d\/([-\w]{25,})/);
-              const actualFileId = fileId ? (fileId[1] || fileId[2]) : null;
+            if (
+              item &&
+              item.image &&
+              (item.image.includes("drive.google.com") ||
+                item.image.includes("googleusercontent.com/d/"))
+            ) {
+              const fileId = item.image.match(
+                /id=([-\w]{25,})|d\/([-\w]{25,})/,
+              );
+              const actualFileId = fileId ? fileId[1] || fileId[2] : null;
 
               if (actualFileId) {
                 await fetch(GAS_API_URL, {
@@ -2258,14 +2376,14 @@
                   headers: { "Content-Type": "text/plain;charset=utf-8" },
                   body: JSON.stringify({
                     action: "deleteImage",
-                    fileId: actualFileId
-                  })
+                    fileId: actualFileId,
+                  }),
                 });
               }
             }
 
             await deleteDoc(doc(db, "inventory", id));
-            window.loadInitialData(true);
+            // No manual reload
 
             Swal.fire({
               icon: "success",
@@ -2275,9 +2393,13 @@
             });
           } catch (error) {
             console.error("Delete error:", error);
-            Swal.fire("Error", "ไม่สามารถลบข้อมูลได้สมบูรณ์: " + error.message, "error");
+            Swal.fire(
+              "Error",
+              "ไม่สามารถลบข้อมูลได้สมบูรณ์: " + error.message,
+              "error",
+            );
           } finally {
-              window.hideLoading();
+            window.hideLoading();
           }
         }
       };
@@ -2296,12 +2418,14 @@
           const matchCat = catFilter ? itemTags.includes(catFilter) : true;
           return matchName && matchCat;
         });
-        
-        const activeFilterDisplay = document.getElementById("active-filter-display");
+
+        const activeFilterDisplay = document.getElementById(
+          "active-filter-display",
+        );
         if (catFilter) {
-            const colorClass = window.getTagColor(catFilter);
-            activeFilterDisplay.classList.remove("hidden");
-            activeFilterDisplay.innerHTML = `
+          const colorClass = window.getTagColor(catFilter);
+          activeFilterDisplay.classList.remove("hidden");
+          activeFilterDisplay.innerHTML = `
                 <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full ${colorClass} shadow-sm text-sm font-medium">
                     <span>กำลังกรอง: ${catFilter}</span>
                     <button onclick="clearFilter()" class="hover:bg-black/10 rounded-full w-5 h-5 flex items-center justify-center transition">
@@ -2310,18 +2434,20 @@
                 </div>
             `;
         } else {
-            activeFilterDisplay.classList.add("hidden");
-            activeFilterDisplay.innerHTML = "";
+          activeFilterDisplay.classList.add("hidden");
+          activeFilterDisplay.innerHTML = "";
         }
-        
+
         items.forEach((item) => {
           const isOut = item.remaining <= 0;
           const tags = window.getCategoryArray(item);
-          const tagsHtml = tags.map(t => {
+          const tagsHtml = tags
+            .map((t) => {
               const colorClass = window.getTagColor(t);
               return `<span class="${colorClass} px-2 py-0.5 rounded text-[10px] cursor-pointer hover:opacity-80 transition" onclick="event.stopPropagation(); window.filterByTag('${t}')">${t}</span>`;
-          }).join(" ");
-          
+            })
+            .join(" ");
+
           const cardClass = isOut
             ? "bg-white dark:bg-dark-card rounded-2xl border border-gray-100 dark:border-gray-700 flex flex-row md:flex-col h-auto md:h-full overflow-hidden opacity-60"
             : "bg-white dark:bg-dark-card rounded-2xl shadow-sm hover:shadow-md transition border border-gray-100 dark:border-gray-700 flex flex-row md:flex-col h-auto md:h-full group overflow-hidden";
@@ -2357,23 +2483,27 @@
       function renderAdminTable() {
         const container = document.getElementById("admin-inventory-container");
         if (!container) return;
-        
-        const catFilter = document.getElementById("admin-filter-category").value;
-        
-        const items = window.inventoryData.filter(i => {
-            const itemTags = window.getCategoryArray(i);
-            const matchCat = catFilter ? itemTags.includes(catFilter) : true;
-            return matchCat;
+
+        const catFilter = document.getElementById(
+          "admin-filter-category",
+        ).value;
+
+        const items = window.inventoryData.filter((i) => {
+          const itemTags = window.getCategoryArray(i);
+          const matchCat = catFilter ? itemTags.includes(catFilter) : true;
+          return matchCat;
         });
 
         // Desktop Table
         let tableRowsHtml = "";
         items.forEach((item) => {
           const tags = window.getCategoryArray(item);
-          const tagsHtml = tags.map(t => {
+          const tagsHtml = tags
+            .map((t) => {
               const colorClass = window.getTagColor(t);
               return `<span class="inline-block text-[10px] ${colorClass} px-1.5 rounded mr-1 mb-1">${t}</span>`;
-          }).join("");
+            })
+            .join("");
 
           tableRowsHtml += `
                     <tr class="bg-white border-b dark:bg-dark-card dark:border-gray-700">
@@ -2391,7 +2521,7 @@
                             <div class="flex flex-wrap max-w-[150px]">${tagsHtml}</div>
                         </td>
                         <td class="px-4 py-3 text-center">
-                            <span class="${item.remaining === 0 ? 'text-red-500 font-bold' : 'text-gray-700 dark:text-gray-300'}">${item.remaining}</span>
+                            <span class="${item.remaining === 0 ? "text-red-500 font-bold" : "text-gray-700 dark:text-gray-300"}">${item.remaining}</span>
                             <span class="text-gray-400">/${item.stock}</span>
                         </td>
                         <td class="px-4 py-3 text-center space-x-2">
@@ -2404,13 +2534,15 @@
         // Mobile Cards
         let mobileCardsHtml = "";
         items.forEach((item) => {
-            const tags = window.getCategoryArray(item);
-            const tagsHtml = tags.map(t => {
-                const colorClass = window.getTagColor(t);
-                return `<span class="text-[10px] ${colorClass} px-2 py-0.5 rounded">${t}</span>`;
-            }).join(" ");
+          const tags = window.getCategoryArray(item);
+          const tagsHtml = tags
+            .map((t) => {
+              const colorClass = window.getTagColor(t);
+              return `<span class="text-[10px] ${colorClass} px-2 py-0.5 rounded">${t}</span>`;
+            })
+            .join(" ");
 
-            mobileCardsHtml += `
+          mobileCardsHtml += `
             <div class="bg-white dark:bg-dark-card rounded-xl p-3 shadow-sm border border-gray-100 dark:border-gray-700 flex gap-3 items-center">
                 <div class="relative w-16 h-16 flex-shrink-0">
                     <img 
@@ -2425,7 +2557,7 @@
                     <div class="flex flex-wrap gap-1 mb-1">${tagsHtml}</div>
                     <div class="font-bold text-gray-800 dark:text-gray-100 text-sm truncate mb-1">${item.name}</div>
                     <div class="text-xs">
-                       คงเหลือ: <span class="${item.remaining===0?'text-red-500 font-bold':'font-medium'}">${item.remaining}</span> / ${item.stock}
+                       คงเหลือ: <span class="${item.remaining === 0 ? "text-red-500 font-bold" : "font-medium"}">${item.remaining}</span> / ${item.stock}
                     </div>
                 </div>
                 <div class="flex flex-col gap-2 border-l border-gray-100 dark:border-gray-700 pl-3">
@@ -2477,9 +2609,13 @@
         const active = myLogs.filter((l) => l.status === "borrowed");
         const pending = myLogs.filter((l) => l.status === "pending_return");
 
-        document.getElementById("my-items-active-empty").classList.toggle("hidden", active.length > 0);
-        document.getElementById("my-items-pending-empty").classList.toggle("hidden", pending.length > 0);
-        
+        document
+          .getElementById("my-items-active-empty")
+          .classList.toggle("hidden", active.length > 0);
+        document
+          .getElementById("my-items-pending-empty")
+          .classList.toggle("hidden", pending.length > 0);
+
         const totalBadgeCount = active.length + pending.length;
         if (totalBadgeCount > 0) {
           badge.classList.remove("hidden");
@@ -2487,15 +2623,16 @@
         } else {
           badge.classList.add("hidden");
         }
-        
+
         if (active.length > 0) {
-            returnAllBtn.classList.remove("hidden");
+          returnAllBtn.classList.remove("hidden");
         } else {
-            returnAllBtn.classList.add("hidden");
+          returnAllBtn.classList.add("hidden");
         }
 
         const createCard = (log, isActive) => {
-          const item = window.inventoryData.find((i) => i.id == log.itemId) || {};
+          const item =
+            window.inventoryData.find((i) => i.id == log.itemId) || {};
           const date = new Date(log.borrowDate).toLocaleDateString("th-TH");
           const btn = isActive
             ? `<button onclick="requestReturn('${log.id}')" class="bg-green-500 hover:bg-green-600 text-white w-10 h-10 rounded-full flex items-center justify-center shadow flex-shrink-0"><i class="fas fa-undo"></i></button>`
@@ -2536,10 +2673,13 @@
           badge.classList.add("hidden");
           verifyAllBtn.classList.add("hidden");
         }
-        document.getElementById("verify-empty").classList.toggle("hidden", pending.length > 0);
+        document
+          .getElementById("verify-empty")
+          .classList.toggle("hidden", pending.length > 0);
 
         pending.forEach((log) => {
-          const item = window.inventoryData.find((i) => i.id == log.itemId) || {};
+          const item =
+            window.inventoryData.find((i) => i.id == log.itemId) || {};
           const nameHtml = window.createMarqueeHtml(log.itemName, 15);
 
           list.innerHTML += `
@@ -2564,7 +2704,9 @@
 
       function renderHistory() {
         const container = document.getElementById("history-container");
-        const canManage = window.currentUser.role === 'admin' || window.currentUser.role === 'assistant';
+        const canManage =
+          window.currentUser.role === "admin" ||
+          window.currentUser.role === "assistant";
 
         let headerHtml = "";
         if (canManage) {
@@ -2581,14 +2723,13 @@
 
         // FIXED: Clone array before sort to prevent mutating global state
         let logs = [...window.transactionLogs];
-        
+
         if (!canManage)
           logs = logs.filter((l) => l.empId == window.currentUser.empId);
         logs.sort((a, b) => new Date(b.borrowDate) - new Date(a.borrowDate));
 
         const bulkBtn = document.getElementById("btn-bulk-delete");
-        if (bulkBtn)
-          bulkBtn.classList.toggle("hidden", !canManage);
+        if (bulkBtn) bulkBtn.classList.toggle("hidden", !canManage);
 
         let tableRowsHtml = "";
         logs.forEach((log) => {
@@ -2638,24 +2779,33 @@
 
         let mobileCardsHtml = "";
         logs.forEach((log) => {
-            const statusBadge =
-                log.status === "borrowed"
-                ? '<span class="px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-[10px] font-bold">ยืม</span>'
-                : log.status === "pending_return"
-                    ? '<span class="px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700 text-[10px] font-bold animate-pulse">รอคืน</span>'
-                    : '<span class="px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-[10px] font-bold">คืน</span>';
+          const statusBadge =
+            log.status === "borrowed"
+              ? '<span class="px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-[10px] font-bold">ยืม</span>'
+              : log.status === "pending_return"
+                ? '<span class="px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700 text-[10px] font-bold animate-pulse">รอคืน</span>'
+                : '<span class="px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-[10px] font-bold">คืน</span>';
 
-            const dateStr = new Date(log.borrowDate).toLocaleString('th-TH', {
-                day: 'numeric', month: 'short', year: '2-digit', hour: '2-digit', minute: '2-digit'
-            });
-            
-            const isSelected = window.selectedLogIds.has(log.id);
-            const selectClass = isSelected ? 'card-selected ring-2 ring-primary-500' : '';
-            const onClickAttr = canManage ? `onclick="toggleLogSelection('${log.id}', this)"` : '';
+          const dateStr = new Date(log.borrowDate).toLocaleString("th-TH", {
+            day: "numeric",
+            month: "short",
+            year: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+          });
 
-            const item = window.inventoryData.find(i => i.id === log.itemId) || {};
+          const isSelected = window.selectedLogIds.has(log.id);
+          const selectClass = isSelected
+            ? "card-selected ring-2 ring-primary-500"
+            : "";
+          const onClickAttr = canManage
+            ? `onclick="toggleLogSelection('${log.id}', this)"`
+            : "";
 
-            mobileCardsHtml += `
+          const item =
+            window.inventoryData.find((i) => i.id === log.itemId) || {};
+
+          mobileCardsHtml += `
             <div class="bg-white dark:bg-dark-card rounded-xl p-3 shadow-sm border border-gray-100 dark:border-gray-700 relative transition-all cursor-pointer ${selectClass}" ${onClickAttr}>
                 <div class="flex justify-between items-start mb-2 pb-2 border-b border-gray-50 dark:border-gray-700">
                     <div class="flex items-center gap-1 text-xs text-gray-400">
@@ -2699,72 +2849,61 @@
             </div>
         `;
       }
-      
+
       function renderUsers() {
-          const container = document.getElementById("users-container");
-          if (!container) return;
-          
-          let tableRowsHtml = "";
-          let mobileCardsHtml = "";
+        const container = document.getElementById("users-container");
+        if (!container) return;
 
-          window.usersData.forEach(user => {
-              const isBlocked = user.isBlocked === true;
-              const refreshRate = user.refreshRate || 30; 
-              
-              const statusBadge = isBlocked
-                ? '<span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full font-bold">ถูกระงับ</span>'
-                : '<span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">ปกติ</span>';
+        let tableRowsHtml = "";
+        let mobileCardsHtml = "";
 
-              let roleSelect = '';
-              if (user.id === window.currentUser.docId) {
-                  roleSelect = '<span class="text-gray-400 text-xs">คุณ (Admin)</span>';
-              } else {
-                  roleSelect = `
+        window.usersData.forEach((user) => {
+          const isBlocked = user.isBlocked === true;
+
+          const statusBadge = isBlocked
+            ? '<span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full font-bold">ถูกระงับ</span>'
+            : '<span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">ปกติ</span>';
+
+          let roleSelect = "";
+          if (user.id === window.currentUser.docId) {
+            roleSelect =
+              '<span class="text-gray-400 text-xs">คุณ (Admin)</span>';
+          } else {
+            roleSelect = `
                     <select onchange="changeUserRole('${user.id}', this)" class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white">
-                        <option value="user" ${user.role === 'user' || !user.role ? 'selected' : ''}>User</option>
-                        <option value="assistant" ${user.role === 'assistant' ? 'selected' : ''}>ผู้ช่วย Admin</option>
-                        <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Admin</option>
+                        <option value="user" ${user.role === "user" || !user.role ? "selected" : ""}>User</option>
+                        <option value="assistant" ${user.role === "assistant" ? "selected" : ""}>ผู้ช่วย Admin</option>
+                        <option value="admin" ${user.role === "admin" ? "selected" : ""}>Admin</option>
                     </select>
                   `;
-              }
-              
-              const refreshInput = `
-                 <div class="flex items-center gap-1">
-                    <input type="number" min="5" value="${refreshRate}" 
-                        onchange="saveUserRefreshRate('${user.id}', this)"
-                        class="w-16 px-2 py-1 text-xs text-center border border-gray-300 rounded dark:bg-gray-700 dark:border-gray-600"
-                    >
-                    <span class="text-xs text-gray-500">วิ</span>
-                 </div>
-              `;
+          }
 
-              const toggleBlockBtn = isBlocked
-                ? `<button onclick="toggleUserBlock('${user.id}', true)" class="text-green-600 hover:text-green-800" title="ปลดบล็อค"><i class="fas fa-unlock"></i></button>`
-                : `<button onclick="toggleUserBlock('${user.id}', false)" class="text-red-400 hover:text-red-600" title="ระงับการใช้งาน"><i class="fas fa-ban"></i></button>`;
+          const toggleBlockBtn = isBlocked
+            ? `<button onclick="toggleUserBlock('${user.id}', true)" class="text-green-600 hover:text-green-800" title="ปลดบล็อค"><i class="fas fa-unlock"></i></button>`
+            : `<button onclick="toggleUserBlock('${user.id}', false)" class="text-red-400 hover:text-red-600" title="ระงับการใช้งาน"><i class="fas fa-ban"></i></button>`;
 
-              const infoBtn = `<button onclick="showDeviceInfo('${user.name}', '${user.lastLoginIp || ''}', '${user.userAgent || ''}', '${user.lastLogin || ''}')" class="text-blue-500 hover:text-blue-700" title="ดูข้อมูลอุปกรณ์"><i class="fas fa-info-circle"></i></button>`;
-              const deleteBtn = `<button onclick="deleteUser('${user.id}')" class="text-gray-400 hover:text-red-600" title="ลบ User"><i class="fas fa-trash"></i></button>`;
+          const infoBtn = `<button onclick="showDeviceInfo('${user.name}', '${user.lastLoginIp || ""}', '${user.userAgent || ""}', '${user.lastLogin || ""}')" class="text-blue-500 hover:text-blue-700" title="ดูข้อมูลอุปกรณ์"><i class="fas fa-info-circle"></i></button>`;
+          const deleteBtn = `<button onclick="deleteUser('${user.id}')" class="text-gray-400 hover:text-red-600" title="ลบ User"><i class="fas fa-trash"></i></button>`;
 
-              const isSelf = user.id === window.currentUser.docId;
-              const actions = isSelf 
-                ? '' 
-                : `<div class="flex gap-3 justify-center text-base">${infoBtn} ${toggleBlockBtn} ${deleteBtn}</div>`;
+          const isSelf = user.id === window.currentUser.docId;
+          const actions = isSelf
+            ? ""
+            : `<div class="flex gap-3 justify-center text-base">${infoBtn} ${toggleBlockBtn} ${deleteBtn}</div>`;
 
-              tableRowsHtml += `
+          tableRowsHtml += `
                   <tr class="bg-white border-b dark:bg-dark-card dark:border-gray-700">
                       <td class="px-4 py-3 text-gray-600 dark:text-gray-400 text-xs">${user.empId}</td>
                       <td class="px-4 py-3">
                           <div class="font-medium text-gray-900 dark:text-white">${user.name}</div>
-                          <div class="text-[10px] text-gray-400">Login: ${new Date(user.lastLogin).toLocaleDateString('th-TH')}</div>
+                          <div class="text-[10px] text-gray-400">Login: ${new Date(user.lastLogin).toLocaleDateString("th-TH")}</div>
                       </td>
                       <td class="px-4 py-3 text-center min-w-[100px]">${roleSelect}</td>
-                      <td class="px-4 py-3 text-center min-w-[100px] flex justify-center">${refreshInput}</td>
                       <td class="px-4 py-3 text-center">${statusBadge}</td>
                       <td class="px-4 py-3 text-center">${actions}</td>
                   </tr>
               `;
 
-              mobileCardsHtml += `
+          mobileCardsHtml += `
                 <div class="bg-white dark:bg-dark-card rounded-xl p-4 shadow-sm border border-gray-100 dark:border-gray-700">
                     <div class="flex justify-between items-start mb-2">
                         <div>
@@ -2779,19 +2918,15 @@
                             <label class="text-[10px] text-gray-400 block mb-1">สิทธิ์การใช้งาน</label>
                             ${roleSelect}
                         </div>
-                        <div>
-                             <label class="text-[10px] text-gray-400 block mb-1">Refresh Rate (วินาที)</label>
-                             ${refreshInput}
-                        </div>
                     </div>
                      <div class="flex justify-end items-end gap-3 pb-1 mt-3 pt-2 border-t border-gray-50 dark:border-gray-700">
                         ${actions}
                      </div>
                 </div>
               `;
-          });
+        });
 
-          container.innerHTML = `
+        container.innerHTML = `
               <div class="hidden md:block bg-white dark:bg-dark-card rounded-xl shadow-sm overflow-hidden border border-gray-200 dark:border-gray-700 overflow-x-auto">
                   <table class="w-full text-sm text-left">
                       <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-300 border-b dark:border-gray-600">
@@ -2819,18 +2954,18 @@
         const select = document.getElementById("filter-category");
         const adminSelect = document.getElementById("admin-filter-category");
         const dl = document.getElementById("category-list");
-        
+
         const currentAdminVal = adminSelect.value;
         const currentVal = select.value;
 
         select.innerHTML = '<option value="">ทุกหมวดหมู่</option>';
-        adminSelect.innerHTML = '<option value="">ทุกหมวดหมู่</option>'; 
+        adminSelect.innerHTML = '<option value="">ทุกหมวดหมู่</option>';
         dl.innerHTML = "";
-        
+
         const cats = new Set();
-        window.inventoryData.forEach(item => {
-            const itemCats = window.getCategoryArray(item);
-            itemCats.forEach(c => cats.add(c));
+        window.inventoryData.forEach((item) => {
+          const itemCats = window.getCategoryArray(item);
+          itemCats.forEach((c) => cats.add(c));
         });
 
         cats.forEach((c) => {
@@ -2845,7 +2980,7 @@
 
       function renderDashboard() {
         const role = window.currentUser.role;
-        if (role !== 'admin' && role !== 'assistant') return;
+        if (role !== "admin" && role !== "assistant") return;
 
         const totalItems = window.inventoryData.reduce(
           (sum, i) => sum + i.stock,
@@ -2855,41 +2990,71 @@
         const activeBorrows = window.transactionLogs.filter(
           (l) => l.status === "borrowed",
         ).length;
-        
-        const usersCount = window.usersData.length || "-"; 
+
+        const usersCount = window.usersData.length || "-";
 
         document.getElementById("stat-total-items").innerText = totalItems;
         document.getElementById("stat-total-logs").innerText = totalLogs;
-        document.getElementById("stat-active-borrows").innerText = activeBorrows;
+        document.getElementById("stat-active-borrows").innerText =
+          activeBorrows;
         document.getElementById("stat-users-count").innerText = usersCount;
 
         const userCounts = {};
         const itemCounts = {};
         window.transactionLogs.forEach((log) => {
-          userCounts[log.borrowerName] = (userCounts[log.borrowerName] || 0) + 1;
+          userCounts[log.borrowerName] =
+            (userCounts[log.borrowerName] || 0) + 1;
           itemCounts[log.itemName] = (itemCounts[log.itemName] || 0) + 1;
         });
 
-        const topUsers = Object.entries(userCounts).sort((a, b) => b[1] - a[1]).slice(0, 5);
-        const topItems = Object.entries(itemCounts).sort((a, b) => b[1] - a[1]).slice(0, 5);
+        const topUsers = Object.entries(userCounts)
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 5);
+        const topItems = Object.entries(itemCounts)
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 5);
 
-        renderChart("chart-users", "จำนวนครั้งที่ยืม", topUsers, "rgba(54, 162, 235, 0.6)");
-        renderChart("chart-items", "จำนวนครั้งที่ถูกยืม", topItems, "rgba(255, 206, 86, 0.6)");
+        renderChart(
+          "chart-users",
+          "จำนวนครั้งที่ยืม",
+          topUsers,
+          "rgba(54, 162, 235, 0.6)",
+        );
+        renderChart(
+          "chart-items",
+          "จำนวนครั้งที่ถูกยืม",
+          topItems,
+          "rgba(255, 206, 86, 0.6)",
+        );
 
-        const allItemsSorted = Object.entries(itemCounts).sort((a, b) => b[1] - a[1]);
+        const allItemsSorted = Object.entries(itemCounts).sort(
+          (a, b) => b[1] - a[1],
+        );
         const mostBorrowedList = document.getElementById("list-most-borrowed");
-        const leastBorrowedList = document.getElementById("list-least-borrowed");
+        const leastBorrowedList = document.getElementById(
+          "list-least-borrowed",
+        );
 
         mostBorrowedList.innerHTML = allItemsSorted
           .slice(0, 3)
-          .map(([name, count]) => `<li class="flex justify-between"><span>${name}</span><span class="font-bold">${count} ครั้ง</span></li>`)
+          .map(
+            ([name, count]) =>
+              `<li class="flex justify-between"><span>${name}</span><span class="font-bold">${count} ครั้ง</span></li>`,
+          )
           .join("");
 
-        const zeroBorrows = window.inventoryData.filter((i) => !itemCounts[i.name]);
+        const zeroBorrows = window.inventoryData.filter(
+          (i) => !itemCounts[i.name],
+        );
         leastBorrowedList.innerHTML =
-          zeroBorrows.slice(0, 3)
-            .map((i) => `<li class="flex justify-between"><span>${i.name}</span><span class="text-xs bg-gray-100 px-2 rounded">0 ครั้ง</span></li>`)
-            .join("") || '<li class="text-gray-400 italic">ไม่มีอุปกรณ์ที่ไม่เคยถูกยืม</li>';
+          zeroBorrows
+            .slice(0, 3)
+            .map(
+              (i) =>
+                `<li class="flex justify-between"><span>${i.name}</span><span class="text-xs bg-gray-100 px-2 rounded">0 ครั้ง</span></li>`,
+            )
+            .join("") ||
+          '<li class="text-gray-400 italic">ไม่มีอุปกรณ์ที่ไม่เคยถูกยืม</li>';
       }
 
       let usersChartInstance = null;
