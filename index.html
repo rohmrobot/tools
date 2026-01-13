@@ -20,6 +20,13 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+    <!-- Added flatpickr for better date picking experience -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
@@ -165,6 +172,41 @@
           0.4
         ) !important; /* primary-900 / 40% */
       }
+      .dropdown-visible {
+        visibility: visible !important;
+        opacity: 1 !important;
+        transform: scale(1) !important;
+      }
+
+      /* Flatpickr Dark Mode Support */
+      .dark .flatpickr-calendar {
+        background: #1e293b;
+        border-color: #334155;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+      }
+      .dark .flatpickr-day {
+        color: #e2e8f0;
+      }
+      .dark .flatpickr-day.nextMonthDay,
+      .dark .flatpickr-day.prevMonthDay {
+        color: #475569;
+      }
+      .dark .flatpickr-day:hover {
+        background: #334155;
+      }
+      .dark .flatpickr-months .flatpickr-month,
+      .dark .flatpickr-current-month,
+      .dark .flatpickr-current-month input.cur-year {
+        color: #e2e8f0;
+        fill: #e2e8f0;
+      }
+      .dark .flatpickr-weekday {
+        color: #94a3b8;
+      }
+      .dark .flatpickr-day.selected {
+        background: #0ea5e9;
+        border-color: #0ea5e9;
+      }
     </style>
   </head>
   <body
@@ -181,6 +223,23 @@
           theme: "ems_theme",
         },
       };
+
+      // ฟังก์ชันเปิด-ปิด Dropdown โปรไฟล์
+      window.toggleProfileDropdown = (event) => {
+        if (event) event.stopPropagation();
+        const dropdown = document.getElementById("profile-dropdown-menu");
+        dropdown.classList.toggle("dropdown-visible");
+      };
+
+      // ฟังก์ชันปิด Dropdown (ใช้ตอนกดปุ่มเพื่อให้แน่ใจว่าหายไปบนมือถือ)
+      window.closeProfileDropdown = () => {
+        const dropdown = document.getElementById("profile-dropdown-menu");
+        if (dropdown) dropdown.classList.remove("dropdown-visible");
+      };
+
+      document.addEventListener("click", () => {
+        window.closeProfileDropdown();
+      });
 
       window.handleImageError = (img) => {
         img.onerror = null;
@@ -388,7 +447,10 @@
                 ><i class="fas fa-sun hidden dark:block"></i>
               </button>
               <div class="relative group z-50">
-                <button class="flex items-center gap-2 pl-2">
+                <button
+                  onclick="toggleProfileDropdown(event)"
+                  class="flex items-center gap-2 pl-2"
+                >
                   <div class="text-right hidden sm:block">
                     <p
                       id="user-display-name"
@@ -412,7 +474,8 @@
                   </div>
                 </button>
                 <div
-                  class="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-xl py-2 invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all transform origin-top-right border border-gray-100 dark:border-gray-700"
+                  id="profile-dropdown-menu"
+                  class="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-xl py-2 invisible opacity-0 transition-all transform origin-top-right border border-gray-100 dark:border-gray-700"
                 >
                   <div
                     class="px-4 py-2 border-b border-gray-100 dark:border-gray-700 sm:hidden"
@@ -428,7 +491,10 @@
                     </p>
                   </div>
                   <button
-                    onclick="DataService.loadData()"
+                    onclick="
+                      DataService.loadData();
+                      closeProfileDropdown();
+                    "
                     class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
                   >
                     <i class="fas fa-sync-alt mr-2 text-blue-500"></i>
@@ -436,7 +502,10 @@
                   </button>
                   <!-- ADDED: History Menu for Users -->
                   <button
-                    onclick="switchTab('history')"
+                    onclick="
+                      switchTab('history');
+                      closeProfileDropdown();
+                    "
                     class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 border-t border-gray-100 dark:border-gray-700"
                   >
                     <i class="fas fa-history mr-2 text-primary-500"></i>
@@ -584,10 +653,18 @@
         <div id="view-dashboard" class="hidden fade-in">
           <!-- Content same as before -->
           <div class="mb-6">
-            <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
-              <i class="fas fa-chart-line text-indigo-500"></i> ภาพรวมระบบ
-              (Dashboard)
-            </h2>
+            <div class="flex justify-between items-center mb-4 flex-wrap gap-2">
+              <h2 class="text-2xl font-bold flex items-center gap-2">
+                <i class="fas fa-chart-line text-indigo-500"></i> ภาพรวมระบบ
+                (Dashboard)
+              </h2>
+              <button
+                onclick="refreshDashboardData()"
+                class="bg-white dark:bg-dark-card hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-600 px-4 py-2 rounded-lg text-sm shadow-sm transition flex items-center gap-2"
+              >
+                <i class="fas fa-sync-alt text-indigo-500"></i> อัปเดตข้อมูล
+              </button>
+            </div>
 
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
               <div
@@ -602,9 +679,9 @@
                 class="bg-white dark:bg-dark-card p-4 rounded-xl shadow-sm border-l-4 border-green-500"
               >
                 <div class="text-xs text-gray-500 dark:text-dark-muted">
-                  รายการยืมทั้งหมด
+                  รายการยืม (Logs)
                 </div>
-                <div class="text-2xl font-bold" id="stat-total-logs">0</div>
+                <div class="text-2xl font-bold" id="stat-total-logs">-</div>
               </div>
               <div
                 class="bg-white dark:bg-dark-card p-4 rounded-xl shadow-sm border-l-4 border-yellow-500"
@@ -678,34 +755,6 @@
                 </div>
               </div>
             </div>
-          </div>
-
-          <div
-            class="bg-white dark:bg-dark-card p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 mb-6 flex flex-col sm:flex-row justify-between items-center gap-4"
-          >
-            <div class="flex items-center gap-3">
-              <div
-                class="bg-orange-100 dark:bg-orange-900/30 p-3 rounded-full text-orange-600 dark:text-orange-400"
-              >
-                <i class="fas fa-server text-xl"></i>
-              </div>
-              <div>
-                <h3 class="font-bold text-gray-700 dark:text-gray-200 text-sm">
-                  ตรวจสอบโควต้าการใช้งานจริง
-                </h3>
-                <p class="text-xs text-gray-500 dark:text-dark-muted">
-                  ดูปริมาณการอ่าน/เขียนข้อมูลและขีดจำกัด (Free Tier) ได้ที่
-                  Firebase Console
-                </p>
-              </div>
-            </div>
-            <a
-              href="https://console.firebase.google.com/u/0/project/borrow-tools-system/firestore/databases/-default-/usage/prev-24h"
-              target="_blank"
-              class="w-full sm:w-auto text-center bg-indigo-50 text-indigo-600 hover:bg-indigo-100 dark:bg-indigo-900/50 dark:text-indigo-300 px-4 py-2 rounded-lg text-sm font-bold transition flex items-center justify-center gap-2 whitespace-nowrap border border-indigo-100 dark:border-indigo-800"
-            >
-              <i class="fas fa-external-link-alt"></i> ไปที่ Console
-            </a>
           </div>
         </div>
 
@@ -836,37 +885,73 @@
 
         <div id="view-history" class="hidden fade-in">
           <!-- History Content -->
-          <div class="flex justify-between items-center mb-6">
-            <h2 class="text-xl font-bold">ประวัติการยืม-คืน</h2>
-            <div id="history-action-area" class="hidden items-center gap-2">
-              <!-- ADDED: Select All Button -->
-              <button
-                onclick="toggleSelectAllMobile()"
-                class="text-xs bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 px-3 py-1.5 rounded-lg text-gray-600 dark:text-gray-300 transition flex items-center gap-1"
-              >
-                <i class="fas fa-check-double text-xs"></i>
-                <span id="select-all-text">เลือกทั้งหมด</span>
-              </button>
+          <div
+            class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4"
+          >
+            <h2 class="text-xl font-bold whitespace-nowrap">
+              ประวัติการยืม-คืน
+            </h2>
 
-              <span
-                id="selection-count"
-                class="text-xs text-gray-500 dark:text-dark-muted hidden sm:inline"
-                >0 รายการ</span
-              >
-
+            <div class="flex w-full md:w-auto gap-2 items-center">
+              <div class="relative w-full md:w-auto">
+                <!-- Changed from type="date" to type="text" for Flatpickr -->
+                <input
+                  type="text"
+                  id="history-date-picker"
+                  class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 dark:text-white shadow-sm focus:ring-2 focus:ring-primary-500 outline-none text-sm"
+                  placeholder="เลือกวันที่..."
+                />
+              </div>
               <button
-                onclick="deleteSelectedLogs()"
-                id="btn-bulk-delete"
-                class="bg-red-100 hover:bg-red-200 text-red-600 dark:bg-red-900/50 dark:hover:bg-red-900/70 dark:text-red-300 px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1"
+                onclick="searchHistoryByDate()"
+                class="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg shadow-sm text-sm whitespace-nowrap flex items-center gap-2"
               >
-                <i class="fas fa-trash-alt text-xs"></i> ลบ
+                <i class="fas fa-search"></i> ค้นหา
               </button>
             </div>
           </div>
 
+          <!-- History Action Area -->
+          <div
+            id="history-action-area"
+            class="hidden items-center gap-2 mb-4 justify-end"
+          >
+            <button
+              onclick="toggleSelectAllMobile()"
+              class="text-xs bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 px-3 py-1.5 rounded-lg text-gray-600 dark:text-gray-300 transition flex items-center gap-1"
+            >
+              <i class="fas fa-check-double text-xs"></i>
+              <span id="select-all-text">เลือกทั้งหมด</span>
+            </button>
+
+            <span
+              id="selection-count"
+              class="text-xs text-gray-500 dark:text-dark-muted hidden sm:inline"
+              >0 รายการ</span
+            >
+
+            <button
+              onclick="deleteSelectedLogs()"
+              id="btn-bulk-delete"
+              class="bg-red-100 hover:bg-red-200 text-red-600 dark:bg-red-900/50 dark:hover:bg-red-900/70 dark:text-red-300 px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1"
+            >
+              <i class="fas fa-trash-alt text-xs"></i> ลบ
+            </button>
+          </div>
+
           <!-- History Container (Supports both Table and Card view via JS injection) -->
-          <div id="history-container">
-            <!-- Will be populated by JS -->
+          <div id="history-container" class="min-h-[200px]">
+            <!-- Default Empty State -->
+            <div
+              class="text-center py-12 bg-white dark:bg-dark-card rounded-xl border border-dashed border-gray-300 dark:border-gray-700"
+            >
+              <i
+                class="fas fa-calendar-day text-4xl text-gray-300 dark:text-gray-600 mb-3"
+              ></i>
+              <p class="text-gray-500 dark:text-gray-400">
+                กรุณาเลือกวันที่และกดค้นหาเพื่อดูประวัติ
+              </p>
+            </div>
           </div>
         </div>
 
@@ -1171,6 +1256,8 @@
         where,
         runTransaction,
         writeBatch,
+        orderBy,
+        limit,
       } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
       // --- FIREBASE CONFIGURATION ---
@@ -1196,13 +1283,18 @@
       // --- GLOBAL STATE ---
       window.currentUser = null;
       window.inventoryData = [];
-      window.transactionLogs = [];
+
+      // Updated Data Structure for Quota Management
+      window.activeLogs = []; // For My Items & Verify (Fetched on Init/Update)
+      window.historyLogs = []; // For History View (Fetched on Demand)
+      window.cachedAllLogs = []; // For Dashboard Stats (Fetched on Refresh)
+
       window.usersData = [];
       window.currentBorrowItemId = null;
       let isSaving = false;
       let unsubscribeInventory = null;
-      let unsubscribeLogs = null;
       let unsubscribeUsers = null;
+      let unsubscribeActiveLogs = null; // ADDED: Global listener variable
 
       // --- HELPER & UI FUNCTIONS (HOISTED) ---
 
@@ -1211,8 +1303,6 @@
         if (text.length <= maxLength) {
           return `<h4 class="font-bold text-gray-900 dark:text-gray-100 truncate leading-tight">${text}</h4>`;
         }
-        // Duplicate text for seamless loop only on Mobile (md:hidden)
-        // On Desktop (md:block), show truncated text
         return `
             <div class="marquee-wrapper w-full md:hidden">
                 <div class="marquee-content">
@@ -1318,6 +1408,7 @@
       function switchTab(tab) {
         // Scroll to top
         window.scrollTo(0, 0);
+        window.closeProfileDropdown();
 
         document.querySelectorAll(".tab-btn").forEach((b) => {
           b.classList.remove(
@@ -1403,8 +1494,24 @@
         if (tab === "users" && typeof renderUsers === "function") renderUsers();
         if (tab === "my-items" && typeof renderMyItems === "function")
           renderMyItems();
-        if (tab === "history" && typeof renderHistory === "function")
-          renderHistory();
+        // Updated: History does not auto-render, needs search
+        if (tab === "history") {
+          // Optional: Set default date to today but don't auto-fetch to save quota
+          const today = new Date().toISOString().split("T")[0];
+          // Initialize Flatpickr if not already done
+          if (!window.historyFlatpickr) {
+            window.historyFlatpickr = flatpickr("#history-date-picker", {
+              dateFormat: "Y-m-d",
+              altInput: true,
+              altFormat: "d/m/Y",
+              defaultDate: today,
+              allowInput: false,
+              disableMobile: true, // FIX: Forces Flatpickr UI on mobile instead of native picker
+            });
+          } else {
+            window.historyFlatpickr.setDate(today);
+          }
+        }
         if (tab === "verify" && typeof renderVerify === "function")
           renderVerify();
         if (tab === "dashboard" && typeof renderDashboard === "function")
@@ -1468,15 +1575,14 @@
 
       window.DataService = {
         loadData: () => {
-          // Do nothing or re-init listeners if needed
-          console.log("Data is realtime.");
+          window.location.reload();
         },
         saveData: async () => true,
       };
 
       // --- REALTIME LISTENERS ---
       function startRealtimeListeners() {
-        // Inventory Listener
+        // Inventory Listener (Kept for Stock updates)
         if (unsubscribeInventory) unsubscribeInventory();
         unsubscribeInventory = onSnapshot(
           collection(db, "inventory"),
@@ -1493,29 +1599,48 @@
                 window.currentUser.role === "assistant")
             ) {
               if (typeof renderAdminTable === "function") renderAdminTable();
-              if (typeof renderDashboard === "function") renderDashboard();
+              // Removed auto renderDashboard to save quota/performance
             }
           },
         );
 
-        // Logs Listener
-        if (unsubscribeLogs) unsubscribeLogs();
-        unsubscribeLogs = onSnapshot(collection(db, "logs"), (snapshot) => {
-          window.transactionLogs = snapshot.docs.map((doc) => ({
-            id: doc.id,
-            ...doc.data(),
-          }));
-          renderHistory();
-          renderMyItems();
-          if (
-            window.currentUser &&
-            (window.currentUser.role === "admin" ||
-              window.currentUser.role === "assistant")
-          ) {
-            if (typeof renderVerify === "function") renderVerify();
-            if (typeof renderDashboard === "function") renderDashboard();
-          }
-        });
+        // ADDED: Real-time listener for active logs (borrowed & pending_return)
+        // This makes "Verify" page for admin real-time with minimum quota usage
+        if (unsubscribeActiveLogs) unsubscribeActiveLogs();
+        const qLogs = query(
+          collection(db, "logs"),
+          where("status", "in", ["borrowed", "pending_return"]),
+        );
+        unsubscribeActiveLogs = onSnapshot(
+          qLogs,
+          (snapshot) => {
+            window.activeLogs = snapshot.docs.map((doc) => ({
+              id: doc.id,
+              ...doc.data(),
+            }));
+
+            // Re-render components that use this data
+            if (
+              document
+                .getElementById("view-my-items")
+                .classList.contains("hidden") === false
+            )
+              renderMyItems();
+            if (
+              document
+                .getElementById("view-verify")
+                .classList.contains("hidden") === false
+            )
+              renderVerify();
+
+            // Always update badges
+            renderMyItems();
+            renderVerify();
+          },
+          (err) => {
+            console.error("Logs Listener Error:", err);
+          },
+        );
 
         // Users Listener (Admin Only)
         if (window.currentUser.role === "admin") {
@@ -1526,10 +1651,156 @@
               ...doc.data(),
             }));
             if (typeof renderUsers === "function") renderUsers();
-            if (typeof renderDashboard === "function") renderDashboard();
           });
         }
       }
+
+      // --- DATA FETCHING FUNCTIONS (MANUAL) ---
+
+      // UPDATED: Now mostly redundant but kept for logic consistency where called
+      window.fetchActiveLogs = async () => {
+        // Data is now handled by the real-time listener in startRealtimeListeners
+        // But we return the current array for compatibility
+        return window.activeLogs;
+      };
+
+      window.searchHistoryByDate = async () => {
+        const datePicker = document.getElementById("history-date-picker");
+        const selectedDate = datePicker.value;
+
+        if (!selectedDate) {
+          Swal.fire({
+            icon: "warning",
+            title: "กรุณาเลือกวันที่",
+            toast: true,
+            position: "top-end",
+            showConfirmButton: false,
+            timer: 2000,
+          });
+          return;
+        }
+
+        window.showLoading("กำลังค้นหาข้อมูล...");
+
+        try {
+          // Construct Date Range for the selected day
+          // ISO format is YYYY-MM-DDTHH:mm:ss.sssZ
+          // We want >= selectedDate and < selectedDate + 1 day
+          const startDateStr = selectedDate;
+          const nextDate = new Date(selectedDate);
+          nextDate.setDate(nextDate.getDate() + 1);
+          const endDateStr = nextDate.toISOString().split("T")[0];
+
+          // --- FIX: QUERY BY DATE ONLY TO AVOID COMPOSITE INDEX ERROR ---
+          // Firestore requires an index if you combine Equality (empId) with Inequality (borrowDate).
+          // Since the user cannot create an index easily, we query ONLY by Date Range (which works by default).
+          // Then we filter by empId in JavaScript memory.
+          // This also saves quota compared to fetching ALL user history, as daily logs are usually fewer than lifetime logs.
+
+          const q = query(
+            collection(db, "logs"),
+            where("borrowDate", ">=", startDateStr),
+            where("borrowDate", "<", endDateStr),
+          );
+
+          const snapshot = await getDocs(q);
+
+          // 1. Convert to Array
+          let logs = snapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+          }));
+
+          // 2. Filter Client-Side for Regular Users
+          const canSeeAll =
+            window.currentUser.role === "admin" ||
+            window.currentUser.role === "assistant";
+          if (!canSeeAll) {
+            logs = logs.filter((log) => log.empId === window.currentUser.empId);
+          }
+
+          if (logs.length === 0) {
+            window.hideLoading();
+            window.historyLogs = [];
+            renderHistory();
+
+            // Toast Alert
+            Swal.fire({
+              icon: "info",
+              title: "ไม่พบข้อมูล",
+              text: "ไม่มีประวัติการยืม-คืนในวันที่เลือก",
+              toast: true,
+              position: "top-end",
+              showConfirmButton: false,
+              timer: 3000,
+            });
+          } else {
+            window.historyLogs = logs;
+            // Sort locally by date desc
+            window.historyLogs.sort(
+              (a, b) => new Date(b.borrowDate) - new Date(a.borrowDate),
+            );
+
+            window.hideLoading();
+            renderHistory();
+
+            Swal.fire({
+              icon: "success",
+              title: `พบ ${window.historyLogs.length} รายการ`,
+              toast: true,
+              position: "top-end",
+              showConfirmButton: false,
+              timer: 1500,
+            });
+          }
+        } catch (e) {
+          console.error(e);
+          window.hideLoading();
+          Swal.fire("Error", "เกิดข้อผิดพลาดในการค้นหา: " + e.message, "error");
+        }
+      };
+
+      window.refreshDashboardData = async () => {
+        const result = await Swal.fire({
+          title: "ยืนยันการอัปเดต?",
+          text: "การโหลดข้อมูลทั้งหมดอาจใช้เวลานานและใช้งานโควต้าการอ่านข้อมูล",
+          icon: "question",
+          showCancelButton: true,
+          confirmButtonText: "อัปเดต",
+          cancelButtonText: "ยกเลิก",
+        });
+
+        if (result.isConfirmed) {
+          window.showLoading("กำลังโหลดข้อมูลทั้งหมด...");
+          try {
+            // 1. Refresh Active Logs (for integrity)
+            await window.fetchActiveLogs();
+
+            // 2. Fetch ALL logs for statistics (Heavy Operation)
+            // Warning: This reads entire collection. Optimization would be to use aggregation queries if available,
+            // but for this scope we fetch all as requested to get accurate stats.
+            const snapshot = await getDocs(collection(db, "logs"));
+            window.cachedAllLogs = snapshot.docs.map((doc) => ({
+              id: doc.id,
+              ...doc.data(),
+            }));
+
+            renderDashboard();
+            window.hideLoading();
+            Swal.fire({
+              icon: "success",
+              title: "อัปเดตข้อมูลเรียบร้อย",
+              toast: true,
+              position: "top-end",
+              timer: 1500,
+              showConfirmButton: false,
+            });
+          } catch (e) {
+            window.hideLoading();
+            Swal.fire("Error", "ไม่สามารถโหลดข้อมูลได้", "error");
+          }
+        }
+      };
 
       // --- AUTH ---
       window.login = async (e) => {
@@ -1598,7 +1869,6 @@
               lastLoginIp: ipAddress,
               userAgent: userAgent,
               isBlocked: false,
-              refreshRate: 30,
             };
 
             const docRef = await addDoc(collection(db, "users"), newUser);
@@ -1612,7 +1882,6 @@
             name: userData.name,
             role: userData.role || "user",
             isBlocked: userData.isBlocked || false,
-            refreshRate: userData.refreshRate || 30,
           };
 
           localStorage.setItem("ems_user_fb", JSON.stringify(user));
@@ -1632,6 +1901,9 @@
       window.logout = () => {
         localStorage.removeItem("ems_user_fb");
         if (window.refreshTimerId) clearInterval(window.refreshTimerId);
+        if (unsubscribeInventory) unsubscribeInventory(); // ADDED: Clean up listeners
+        if (unsubscribeUsers) unsubscribeUsers();
+        if (unsubscribeActiveLogs) unsubscribeActiveLogs();
         location.reload();
       };
 
@@ -1788,7 +2060,8 @@
             });
           });
 
-          // SUCCESS - Realtime listener will update UI automatically
+          // UPDATE LOCAL DATA MANUALLY (Since realtime is gone for logs)
+          await fetchActiveLogs();
 
           closeModal("borrow-modal");
           Swal.fire({
@@ -1843,9 +2116,11 @@
             await updateDoc(doc(db, "logs", logId), {
               status: "pending_return",
             });
-            // Realtime listener updates UI
+            // Update local state manually
+            await fetchActiveLogs();
           } catch (e) {
             console.error(e);
+            Swal.fire("Error", "ไม่สามารถส่งคำขอคืนได้", "error");
           }
         }
       };
@@ -1858,21 +2133,27 @@
           confirmButtonText: "ยืนยัน",
         });
         if (result.isConfirmed) {
-          const batch = writeBatch(db);
-          let count = 0;
-          window.transactionLogs.forEach((log) => {
-            if (
-              log.empId == window.currentUser.empId &&
-              log.status === "borrowed"
-            ) {
-              batch.update(doc(db, "logs", log.id), {
-                status: "pending_return",
-              });
-              count++;
+          try {
+            const batch = writeBatch(db);
+            let count = 0;
+            window.activeLogs.forEach((log) => {
+              if (
+                log.empId == window.currentUser.empId &&
+                log.status === "borrowed"
+              ) {
+                batch.update(doc(db, "logs", log.id), {
+                  status: "pending_return",
+                });
+                count++;
+              }
+            });
+            if (count > 0) {
+              await batch.commit();
+              await fetchActiveLogs();
             }
-          });
-          if (count > 0) {
-            await batch.commit();
+          } catch (e) {
+            console.error(e);
+            Swal.fire("Error", "เกิดข้อผิดพลาด", "error");
           }
         }
       };
@@ -1898,13 +2179,16 @@
               });
             }
           });
+
+          // Update local state
+          await fetchActiveLogs();
         } catch (e) {
           Swal.fire("Error", e.toString(), "error");
         }
       };
 
       window.verifyAllReturns = async () => {
-        const pending = window.transactionLogs.filter(
+        const pending = window.activeLogs.filter(
           (l) => l.status === "pending_return",
         );
         for (const log of pending) await window.adminConfirmReturn(log.id);
@@ -1928,7 +2212,19 @@
         if (result.isConfirmed) {
           try {
             await deleteDoc(doc(db, "logs", logId));
+
+            // Update local arrays
             window.selectedLogIds.delete(logId);
+            window.historyLogs = window.historyLogs.filter(
+              (l) => l.id !== logId,
+            );
+            window.activeLogs = window.activeLogs.filter((l) => l.id !== logId);
+            window.cachedAllLogs = window.cachedAllLogs.filter(
+              (l) => l.id !== logId,
+            );
+
+            // Re-render history
+            renderHistory();
 
             // Clear selection logic if needed
             if (window.selectedLogIds.size === 0) {
@@ -1992,12 +2288,8 @@
               .getElementById("history-action-area")
               .classList.remove("flex");
 
-            Swal.fire({
-              icon: "success",
-              title: "ลบเรียบร้อย",
-              timer: 1000,
-              showConfirmButton: false,
-            });
+            // Refresh Current view
+            await window.searchHistoryByDate();
           } catch (e) {
             Swal.fire("Error", "เกิดข้อผิดพลาดในการลบ", "error");
           }
@@ -2038,9 +2330,8 @@
         const canManage =
           window.currentUser.role === "admin" ||
           window.currentUser.role === "assistant";
-        let logs = window.transactionLogs;
-        if (!canManage)
-          logs = logs.filter((l) => l.empId == window.currentUser.empId);
+
+        let logs = window.historyLogs; // Use History Logs
 
         const allSelected = logs.every((log) =>
           window.selectedLogIds.has(log.id),
@@ -2463,7 +2754,13 @@
                                 onerror="handleImageError(this)"
                             >
                             <span class="absolute top-2 right-2 px-2 py-1 text-xs font-bold rounded-full ${isOut ? "bg-red-500 text-white" : "bg-green-500 text-white"} shadow-sm text-[10px] md:text-xs pointer-events-none">
-                                ${isOut ? "หมด" : `ว่าง ${item.remaining}`}
+                                ${
+                                  isOut
+                                    ? "หมด"
+                                    : item.remaining === item.stock
+                                      ? `เหลือ ${item.remaining}`
+                                      : `เหลือ ${item.remaining} จาก ${item.stock}`
+                                }
                             </span>
                         </div>
                         <div class="p-3 md:p-4 flex flex-col flex-1 w-2/3 md:w-full justify-between">
@@ -2595,6 +2892,7 @@
       }
 
       function renderMyItems() {
+        // UPDATED: Use window.activeLogs instead of window.transactionLogs
         const activeList = document.getElementById("my-items-active-list");
         const pendingList = document.getElementById("my-items-pending-list");
         const badge = document.getElementById("my-items-badge");
@@ -2603,7 +2901,7 @@
         activeList.innerHTML = "";
         pendingList.innerHTML = "";
 
-        const myLogs = window.transactionLogs.filter(
+        const myLogs = window.activeLogs.filter(
           (l) => l.empId == window.currentUser.empId,
         );
         const active = myLogs.filter((l) => l.status === "borrowed");
@@ -2657,11 +2955,14 @@
       }
 
       function renderVerify() {
+        // UPDATED: Use window.activeLogs
         const list = document.getElementById("verify-list");
         const badge = document.getElementById("verify-badge");
         const verifyAllBtn = document.getElementById("btn-verify-all");
         list.innerHTML = "";
-        const pending = window.transactionLogs.filter(
+
+        // Filter only pending items from Active Logs
+        const pending = window.activeLogs.filter(
           (l) => l.status === "pending_return",
         );
 
@@ -2703,10 +3004,26 @@
       }
 
       function renderHistory() {
+        // UPDATED: Use window.historyLogs which is populated by Search
         const container = document.getElementById("history-container");
         const canManage =
           window.currentUser.role === "admin" ||
           window.currentUser.role === "assistant";
+
+        // If history logs are empty but no search done yet, we show default state handled in HTML
+        if (window.historyLogs.length === 0) {
+          const datePicker = document.getElementById("history-date-picker");
+          if (datePicker.value && window.historyLogs.length === 0) {
+            // Search done but no result - this is handled by searchHistoryByDate showing alert
+            // But we should also clear the container to show empty message if needed
+            container.innerHTML = `
+                    <div class="text-center py-12 bg-white dark:bg-dark-card rounded-xl border border-dashed border-gray-300 dark:border-gray-700">
+                        <i class="fas fa-search-minus text-4xl text-gray-300 dark:text-gray-600 mb-3"></i>
+                        <p class="text-gray-500 dark:text-gray-400">ไม่พบข้อมูลในวันที่เลือก</p>
+                    </div>`;
+          }
+          return;
+        }
 
         let headerHtml = "";
         if (canManage) {
@@ -2716,17 +3033,15 @@
                 <th class="px-4 py-3">วันที่ยืม</th>
                 <th class="px-4 py-3">ผู้ยืม</th>
                 <th class="px-4 py-3">อุปกรณ์</th>
+                <th class="px-4 py-3 text-center">รูป</th>
                 <th class="px-4 py-3 text-center">จำนวน</th>
                 <th class="px-4 py-3 text-center">สถานะ</th>
                 <th class="px-4 py-3 text-center">วันที่คืน</th>
             `;
 
-        // FIXED: Clone array before sort to prevent mutating global state
-        let logs = [...window.transactionLogs];
-
-        if (!canManage)
-          logs = logs.filter((l) => l.empId == window.currentUser.empId);
-        logs.sort((a, b) => new Date(b.borrowDate) - new Date(a.borrowDate));
+        let logs = [...window.historyLogs];
+        // Sorting handled in fetch, but safeguard here
+        // Filtering by user also handled in fetch
 
         const bulkBtn = document.getElementById("btn-bulk-delete");
         if (bulkBtn) bulkBtn.classList.toggle("hidden", !canManage);
@@ -2744,6 +3059,8 @@
             "th-TH",
             { dateStyle: "short", timeStyle: "short" },
           );
+          const item =
+            window.inventoryData.find((i) => i.id === log.itemId) || {};
           const returnDateTime = log.returnDate
             ? new Date(log.returnDate).toLocaleString("th-TH", {
                 dateStyle: "short",
@@ -2768,6 +3085,7 @@
                             <div class="text-[11px] text-gray-400 font-light mt-0.5">ID: ${log.empId}</div>
                         </td>
                         <td class="px-4 py-3 text-gray-800 dark:text-gray-200">${log.itemName}</td>
+                        <td class="px-4 py-3 text-center"><img src="${item.image || "https://placehold.co/100"}" class="w-10 h-10 rounded object-cover mx-auto cursor-pointer border" onclick="window.openImageModal('${item.image}')" onerror="handleImageError(this)"></td>
                         <td class="px-4 py-3 text-center font-bold text-gray-700 dark:text-gray-300">${log.qty}</td>
                         <td class="px-4 py-3 text-center text-sm whitespace-nowrap">${status}</td>
                         <td class="px-4 py-3 text-center text-sm text-gray-500 whitespace-nowrap">
@@ -2934,7 +3252,6 @@
                               <th class="px-4 py-3">รหัสพนักงาน</th>
                               <th class="px-4 py-3">ชื่อ-นามสกุล</th>
                               <th class="px-4 py-3 text-center">สิทธิ์</th>
-                              <th class="px-4 py-3 text-center">Refresh Rate</th>
                               <th class="px-4 py-3 text-center">สถานะ</th>
                               <th class="px-4 py-3 text-center">การจัดการ</th>
                           </tr>
@@ -2982,26 +3299,43 @@
         const role = window.currentUser.role;
         if (role !== "admin" && role !== "assistant") return;
 
+        // UPDATED: Use cachedAllLogs if available, otherwise use activeLogs as fallback (but stats will be incomplete)
         const totalItems = window.inventoryData.reduce(
           (sum, i) => sum + i.stock,
           0,
         );
-        const totalLogs = window.transactionLogs.length;
-        const activeBorrows = window.transactionLogs.filter(
+
+        let logsSource =
+          window.cachedAllLogs.length > 0
+            ? window.cachedAllLogs
+            : window.activeLogs;
+
+        // Show indicator if data is partial
+        const totalLogsText =
+          window.cachedAllLogs.length > 0
+            ? window.cachedAllLogs.length
+            : "N/A (Update)";
+
+        const activeBorrows = window.activeLogs.filter(
           (l) => l.status === "borrowed",
         ).length;
 
         const usersCount = window.usersData.length || "-";
 
         document.getElementById("stat-total-items").innerText = totalItems;
-        document.getElementById("stat-total-logs").innerText = totalLogs;
+        document.getElementById("stat-total-logs").innerText = totalLogsText;
         document.getElementById("stat-active-borrows").innerText =
           activeBorrows;
         document.getElementById("stat-users-count").innerText = usersCount;
 
+        // If we haven't fetched all logs, we can't show accurate charts
+        if (window.cachedAllLogs.length === 0) {
+          return; // Exit early or show placeholder
+        }
+
         const userCounts = {};
         const itemCounts = {};
-        window.transactionLogs.forEach((log) => {
+        window.cachedAllLogs.forEach((log) => {
           userCounts[log.borrowerName] =
             (userCounts[log.borrowerName] || 0) + 1;
           itemCounts[log.itemName] = (itemCounts[log.itemName] || 0) + 1;
